@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Page xmlns="http://schemas.nativescript.org/tns.xsd" navigatingTo="navigatingTo" class="page">
+    <ActionBar title="Tirage au Sort" class="action-bar" />
+    
+    <ScrollView>
+        <StackLayout>
+            <StackLayout class="form p-16">
+                <Label text="Nombre de joueurs (4-99)" class="h2 text-center" />
+                <GridLayout columns="*, auto" class="m-t-8">
+                    <TextField col="0" 
+                        text="{{ playerCount }}" 
+                        keyboardType="number" 
+                        hint="Entrez un nombre"
+                        returnKeyType="done"
+                        secure="false"
+                        autocorrect="false"
+                        class="input" />
+                    <Button col="1" 
+                        text="RAZ" 
+                        tap="{{ onReset }}" 
+                        class="btn btn-danger m-l-8" />
+                </GridLayout>
+                
+                <Button text="EFFECTUER LE TIRAGE" 
+                    tap="{{ onDraw }}"
+                    class="btn btn-primary m-t-8" />
+            </StackLayout>
+            
+            <StackLayout class="matches-container">
+                <Repeater items="{{ matches }}">
+                    <Repeater.itemTemplate>
+                        <GridLayout columns="auto, *" class="match-row">
+                            <Label col="0" text="{{ matchNumber + '.  ' }}" class="match-number" />
+                            <StackLayout col="1" class="list-group-item">
+                                <Label text="{{ matchText }}" 
+                                    textWrap="true"
+                                    class="text-primary" />
+                            </StackLayout>
+                        </GridLayout>
+                    </Repeater.itemTemplate>
+                </Repeater>
+            </StackLayout>
+        </StackLayout>
+    </ScrollView>
+</Page>
