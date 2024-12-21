@@ -36,11 +36,11 @@ const HomePage: React.FC<HomePageProps> = ({
               <input
                 id="playerCount"
                 type="number"
-                value={playerCount}
-                onChange={(e) => onPlayerCountChange(e.target.value)}
-                className="flex-1 p-3 border rounded-md text-lg"
+                className="flex-1 p-3 border rounded-md text-lg appearance-none"
                 min="4"
                 max="99"
+                value={playerCount}
+                onChange={(e) => onPlayerCountChange(e.target.value)}
                 placeholder="Entrez un nombre"
                 required
               />
