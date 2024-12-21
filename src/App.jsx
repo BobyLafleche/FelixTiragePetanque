@@ -29,13 +29,17 @@ function App() {
   };
 
   const handleTogglePresence = (playerId) => {
-    const newPresent = new Set(presentPlayers);
-    if (newPresent.has(playerId)) {
-      newPresent.delete(playerId);
-    } else {
-      newPresent.add(playerId);
-    }
-    setPresentPlayers(newPresent);
+    setPresentPlayers(prev => {
+      const newPresent = new Set(prev);
+      if (newPresent.has(playerId)) {
+        newPresent.delete(playerId);
+        // Reset triplette status when player becomes absent
+        setTriplettePlayerIds(prev => prev.filter(id => id !== playerId));
+      } else {
+        newPresent.add(playerId);
+      }
+      return newPresent;
+    });
   };
 
   const handleMatchesUpdate = (drawResult) => {

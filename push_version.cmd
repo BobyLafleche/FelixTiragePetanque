@@ -13,12 +13,17 @@ if "%~2"=="" (
     exit /b 1
 )
 
+set VERSION=%~1
+set MESSAGE=%~2
+
+REM Remove 'v' prefix if present
+if "%VERSION:~0,1%"=="v" set VERSION=%VERSION:~1%
+
 echo Pushing changes to git...
 git add .
-git commit -m "feat: %~2"
-git tag -a %~1 -m "%~2"
+git commit -m "feat: Version %VERSION%: %MESSAGE%"
+git tag -a v%VERSION% -m "Version %VERSION%: %MESSAGE%"
 git push origin main
-git push origin %~1
+git push origin v%VERSION%
 echo Done.
 pause
-

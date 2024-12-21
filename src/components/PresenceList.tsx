@@ -12,9 +12,9 @@ interface PresenceListProps {
   triplettePlayerIds: number[];  // Add this
 }
 
-const getPlayerColor = (player: Player, triplettePlayerIds: number[]): string => {
-  if (!player.present) return 'bg-gray-300';  // absent
-  return triplettePlayerIds.includes(player.id) ? 'bg-orange-500' : 'bg-red-500';
+const getPlayerColor = (isPresent: boolean, inTriplette: boolean): string => {
+  if (!isPresent) return 'bg-gray-300';
+  return inTriplette ? 'bg-orange-500' : 'bg-red-500';
 };
 
 const CircleSize = "w-12 h-12"; // Standard size for all circles
@@ -77,21 +77,9 @@ const PresenceList: React.FC<PresenceListProps> = ({
           {Array.from({ length: count }, (_, index) => {
             const playerNumber = index + 1;
             const isPresent = presentPlayers.has(playerNumber);
-            const inTriplette = triplettePlayerIds.includes(playerNumber);
-            const bgColor = !isPresent 
-              ? 'bg-gray-300' 
-              : inTriplette 
-                ? 'bg-orange-500' 
-                : 'bg-red-500';
-
-            console.log(`Player ${playerNumber}:`, {
-              playerNumber,
-              isPresent,
-              inTriplette,
-              bgColor,
-              triplettePlayerIds
-            });
-
+            const inTriplette = isPresent && triplettePlayerIds.includes(playerNumber);
+            const bgColor = getPlayerColor(isPresent, inTriplette);
+            
             return (
               <div key={playerNumber} className={`rounded-full ${CircleSize} ${bgColor}`}>
                 <PlayerCircle
