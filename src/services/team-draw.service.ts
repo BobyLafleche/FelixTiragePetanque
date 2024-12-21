@@ -100,7 +100,7 @@ export class TeamDrawService {
         }
         // Logs de débogage
         console.log("triplettePlayerIds :", triplettePlayerIds);
-        return matches;
+        return { matches, triplettePlayerIds };
     }
 
     private createMatch(number: number, team1: number[], team2: number[]): Match {
@@ -132,6 +132,20 @@ export class TeamDrawService {
                 newPlayers.set(id, { ...player, bonus: player.bonus + 1 });
             }
         });
+        return newPlayers;
+    }
+
+    public updatePlayerBonus(players: Map<number, Player>, triplettePlayerIds: number[]): Map<number, Player> {
+        const newPlayers = new Map(players);
+        for (const [id, player] of newPlayers) {
+            if (!player.present) {
+                newPlayers.set(id, { ...player, bonus: 0 });
+            } else if (triplettePlayerIds.includes(id)) {
+                newPlayers.set(id, { ...player, bonus: player.bonus + 1 });
+            } else {
+                newPlayers.set(id, { ...player, bonus: Math.max(0, player.bonus - 1) });
+            }
+        }
         return newPlayers;
     }
 

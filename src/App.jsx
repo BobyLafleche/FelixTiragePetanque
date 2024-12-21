@@ -9,6 +9,7 @@ function App() {
   const [playerCount, setPlayerCount] = useState('');
   const [presentPlayers, setPresentPlayers] = useState(new Set());
   const [matches, setMatches] = useState([]);
+  const [triplettePlayerIds, setTriplettePlayerIds] = useState([]); // Add state
 
   const handlePlayerCountChange = (count) => {
     setPlayerCount(count);
@@ -37,8 +38,9 @@ function App() {
     setPresentPlayers(newPresent);
   };
 
-  const handleMatchesUpdate = (newMatches) => {
-    setMatches(newMatches);
+  const handleMatchesUpdate = (drawResult) => {
+    setMatches(drawResult.matches);
+    setTriplettePlayerIds(drawResult.triplettePlayerIds);
   };
 
   return (
@@ -62,6 +64,7 @@ function App() {
                 playerCount={playerCount}
                 presentPlayers={presentPlayers}
                 onTogglePresence={handleTogglePresence}
+                triplettePlayerIds={triplettePlayerIds}
               />
             ) : (
               <Navigate to="/" replace />

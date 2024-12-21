@@ -2,17 +2,29 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaHome, FaDice, FaUsers } from 'react-icons/fa';
 import PlayerCircle from './PlayerCircle';
+import { Player } from '../types/match.types';
 
 interface PresenceListProps {
   playerCount: string;
   presentPlayers: Set<number>;
   onTogglePresence: (playerId: number) => void;
+  players?: Map<number, Player>;  // Make optional
+  triplettePlayerIds: number[];  // Add this
 }
+
+const getPlayerColor = (player: Player, triplettePlayerIds: number[]): string => {
+  if (!player.present) return 'bg-gray-300';  // absent
+  return triplettePlayerIds.includes(player.id) ? 'bg-orange-500' : 'bg-red-500';
+};
+
+const CircleSize = "w-12 h-12"; // Standard size for all circles
 
 const PresenceList: React.FC<PresenceListProps> = ({
   playerCount,
   presentPlayers,
-  onTogglePresence
+  onTogglePresence,
+  players = new Map(),  // Provide default value
+  triplettePlayerIds = []
 }) => {
   const navigate = useNavigate();
   const count = parseInt(playerCount);
@@ -64,13 +76,30 @@ const PresenceList: React.FC<PresenceListProps> = ({
         <div className="grid grid-cols-5 gap-4">
           {Array.from({ length: count }, (_, index) => {
             const playerNumber = index + 1;
+            const isPresent = presentPlayers.has(playerNumber);
+            const inTriplette = triplettePlayerIds.includes(playerNumber);
+            const bgColor = !isPresent 
+              ? 'bg-gray-300' 
+              : inTriplette 
+                ? 'bg-orange-500' 
+                : 'bg-red-500';
+
+            console.log(`Player ${playerNumber}:`, {
+              playerNumber,
+              isPresent,
+              inTriplette,
+              bgColor,
+              triplettePlayerIds
+            });
+
             return (
-              <PlayerCircle
-                key={playerNumber}
-                number={playerNumber}
-                isPresent={presentPlayers.has(playerNumber)}
-                onClick={() => onTogglePresence(playerNumber)}
-              />
+              <div key={playerNumber} className={`rounded-full ${CircleSize} ${bgColor}`}>
+                <PlayerCircle
+                  number={playerNumber}
+                  isPresent={isPresent}
+                  onClick={() => onTogglePresence(playerNumber)}
+                />
+              </div>
             );
           })}
         </div>

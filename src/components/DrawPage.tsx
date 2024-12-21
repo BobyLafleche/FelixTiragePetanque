@@ -16,13 +16,8 @@ const DrawPage: React.FC<DrawPageProps> = ({ playerCount, presentPlayers, onMatc
   const navigate = useNavigate();
 
   const handleDraw = () => {
-    if (presentPlayers.length < 4) {
-      alert("Il faut au moins 4 joueurs présents pour effectuer le tirage");
-      return;
-    }
-    const newMatches = teamDrawService.generateMatches(presentPlayers.length, presentPlayers);
-    onMatchesUpdate(newMatches);
-    setIsDrawn(true);
+    const drawResult = teamDrawService.generateMatches(presentPlayers.length, presentPlayers);
+    onMatchesUpdate(drawResult);
     navigate('/teams');
   };
 

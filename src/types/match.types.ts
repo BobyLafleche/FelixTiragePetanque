@@ -6,10 +6,11 @@ export interface Match {
 
 export interface Player {
     id: number;
+    present: boolean;
     bonus: number;
 }
 
 export interface DrawResult {
-    matches: Match[];
-    triplettePlayerIds: number[];
+  matches: Match[];
+  triplettePlayerIds: number[];
 }
