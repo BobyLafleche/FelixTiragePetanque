@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaHome, FaUsers } from 'react-icons/fa';
-import { Match } from '../services/team-draw.service';
+import { Match } from '../types/match.types';
 
 interface TeamsDisplayProps {
   matches: Match[];
@@ -10,6 +10,9 @@ interface TeamsDisplayProps {
 
 const TeamsDisplay: React.FC<TeamsDisplayProps> = ({ matches, onBack }) => {
   const navigate = useNavigate();
+
+  // Debug log to check matches
+  console.log('Matches in TeamsDisplay:', matches);
 
   return (
     <main className="container mx-auto px-4 py-6 max-w-lg">
@@ -24,26 +27,15 @@ const TeamsDisplay: React.FC<TeamsDisplayProps> = ({ matches, onBack }) => {
             <span>PRÉSENCE</span>
           </button>
         </div>
-
-        <div className="space-y-3">
-          {matches.map((match) => (
-            <div key={match.matchNumber} className="flex items-start gap-2">
-              <span className="text-gray-500 mt-3">{match.matchNumber}.</span>
-              <div className="flex-1 bg-gray-50 p-3 rounded-lg">
-                <p className="text-gray-800 font-medium">{match.matchText}</p>
+        
+        <div className="space-y-4">
+          {matches && matches.map((match, index) => (
+            <div key={index} className="p-4 bg-gray-50 rounded-md">
+              <div className="text-lg">
+                {index + 1}. {match.matchText}
               </div>
             </div>
           ))}
-        </div>
-
-        <div className="mt-6 flex justify-between items-center">
-          <button
-            onClick={() => navigate('/')}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors"
-          >
-            <FaHome />
-            <span>Accueil</span>
-          </button>
         </div>
       </div>
     </main>

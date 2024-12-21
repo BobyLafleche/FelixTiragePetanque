@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaUsers, FaDice } from 'react-icons/fa';
 import { TeamDrawService } from '../services/team-draw.service';
+import { Match } from '../types/match.types';
 
 interface DrawPageProps {
   playerCount: string;

@@ -3,6 +3,7 @@ import React from 'react';
 interface PlayerCircleProps {
   number: number;
   isPresent: boolean;
+  bonus: number;  // New field
   onClick: () => void;
 }
 
