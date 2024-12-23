@@ -12,9 +12,13 @@ interface PresenceListProps {
   triplettePlayerIds: number[];  // Add this
 }
 
-const getPlayerColor = (isPresent: boolean, inTriplette: boolean): string => {
-  if (!isPresent) return 'bg-gray-300';
-  return inTriplette ? 'bg-orange-500' : 'bg-red-500';
+const getPlayerColor = (isPresent: boolean, inTriplette: number): string => {
+  if (!isPresent) return 'bg-gray-300'; // Joueur absent : gris
+  if (inTriplette === 1) return 'bg-red-500';    // Rouge intense
+  if (inTriplette === 2) return 'bg-orange-400'; // Orange vif
+  if (inTriplette === 3) return 'bg-yellow-400'; // Jaune lumineux
+  if (inTriplette >= 4) return 'bg-lime-400';    // Vert tendre
+  return 'bg-red-500'; // Par défaut, rouge intense
 };
 
 const CircleSize = "w-12 h-12"; // Standard size for all circles
@@ -66,13 +70,13 @@ const PresenceList: React.FC<PresenceListProps> = ({
           <div className="flex justify-between items-center mt-2">
             <span className="text-gray-600">Présents:</span>
             <span className="font-semibold text-green-600">
-			{Array.isArray(presentPlayers) ? presentPlayers.length : 0}
+			{Array.isArray(presentPlayers) ? presentPlayers.filter(player => player.present).length : 0}
 			</span>
           </div>
           <div className="flex justify-between items-center mt-2">
             <span className="text-gray-600">Absents:</span>
 			<span className="font-semibold text-red-600">
-			{Array.isArray(presentPlayers) ? count - presentPlayers.length : count}
+			{Array.isArray(presentPlayers) ? count - presentPlayers.filter(player => player.present).length : count}
 			</span>
           </div>
         </div>
@@ -81,7 +85,9 @@ const PresenceList: React.FC<PresenceListProps> = ({
           {Array.from({ length: count }, (_, index) => {
             const playerNumber = index + 1;
             const isPresent = Array.isArray(presentPlayers) && presentPlayers.some(player => player.id === playerNumber && player.present);
-            const inTriplette = isPresent && triplettePlayerIds.includes(playerNumber);
+			const inTriplette = Array.isArray(presentPlayers)  ? presentPlayers.find(player => player.id === playerNumber)?.bonus || 0  : 0;
+            //const inTriplette = Array.isArray(presentPlayers) && presentPlayers.some(player => player.id === playerNumber && player.bonus);
+			//const inTriplette = isPresent && triplettePlayerIds.includes(playerNumber);
             const bgColor = getPlayerColor(isPresent, inTriplette);
             
             return (

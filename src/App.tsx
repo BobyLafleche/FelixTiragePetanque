@@ -39,7 +39,7 @@ function App() {
 
   const handleTogglePresence = (playerId: number) => {
     setPresentPlayers(prev => prev.map(player => 
-      player.id === playerId ? { ...player, present: !player.present } : player
+      player.id === playerId ? { ...player, present: !player.present, bonus: player.present ? 0 : player.bonus } : player
     ));
   };
 
@@ -59,16 +59,16 @@ function App() {
         setMatches(drawResult.matches);
         setTriplettePlayerIds(drawResult.triplettePlayerIds);
 
-        // Mettez à jour les joueurs en utilisant la méthode updatePlayerBonus
+        // Mettez Ã  jour les joueurs en utilisant la mÃ©thode updatePlayerBonus
 //        setPresentPlayers(prevPlayers => 
-            updatePlayerBonus(players, drawResult.triplettePlayerIds)
+            updatePlayerBonus(presentPlayers, drawResult.triplettePlayerIds)
 //        );
     };
 
 //	const handleMatchesUpdate = (drawResult: { matches: Match[], triplettePlayerIds: number[] }) => {
 //		setMatches(drawResult.matches);
 //		
-//		// Mettez à jour les joueurs en utilisant la méthode updatePlayerBonus
+//		// Mettez Ã  jour les joueurs en utilisant la mÃ©thode updatePlayerBonus
 //		setPresentPlayers(prevPlayers => 
 //			teamDrawService.updatePlayerBonus(prevPlayers, drawResult.triplettePlayerIds)
 //		);
