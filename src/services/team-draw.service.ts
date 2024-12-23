@@ -1,38 +1,31 @@
+												  
 import { Match, Player, DrawResult } from '../types/match.types';
+												   
 
 export class TeamDrawService {
-    public resetBonuses(players: Map<number, Player>): Map<number, Player> {
-        const newPlayers = new Map(players);
-        for (const [id, player] of newPlayers) {
-            newPlayers.set(id, { ...player, bonus: 0 });
-        }
-        return newPlayers;
-    }
 
-    public generateMatches(playerCount: number, presentPlayers: number[]): DrawResult {
-        // Validation du nombre de joueurs
+    public static  generateMatches(playerCount: number, presentPlayers: Player[]): DrawResult {
         if (playerCount < 4 || playerCount > 99) {
-            return [{
-                matchNumber: 1,
-                matchText: "Le nombre de joueurs doit être entre 4 et 99"
-            }];
+            return {
+                matches: [{
+                    matchNumber: 1,
+                    matchText: "Le nombre de joueurs doit être entre 4 et 99"
+                }],
+                triplettePlayerIds: []
+            };
         }
-
-        // Logs de débogage
         console.log("Présents :", presentPlayers);
-
-        // Mélange des joueurs
         const players = [...presentPlayers];
         this.shuffleArray(players);
         const matches: Match[] = [];
         const triplettePlayerIds: number[] = [];
         const modulo = playerCount % 4;
-        const baseTeamsCount = Math.floor(playerCount / 4);
 
         let matchNumber = 1;
         let remainingPlayers = [...players];
 
-        // Génération des matches en fonction du modulo
+        console.log("modulo :", modulo);
+        console.log("remainingPlayers :", remainingPlayers);
         switch (modulo) {
             case 0: // Uniquement des doublettes
                 while (remainingPlayers.length >= 4) {
@@ -51,7 +44,7 @@ export class TeamDrawService {
                 if (remainingPlayers.length === 5) {
                     const team1 = remainingPlayers.splice(0, 2);
                     const team2 = remainingPlayers.splice(0, 3);
-                    triplettePlayerIds.push(...team2);
+                    triplettePlayerIds.push(...team2.map(p => p.id));
                     matches.push(this.createMatch(matchNumber++, team1, team2));
                 }
                 break;
@@ -64,98 +57,79 @@ export class TeamDrawService {
                 }
                 if (remainingPlayers.length === 6) {
                     const team1 = remainingPlayers.splice(0, 3);
-                    triplettePlayerIds.push(...team1);
+                    triplettePlayerIds.push(...team1.map(p => p.id));
                     const team2 = remainingPlayers.splice(0, 3);
-                    triplettePlayerIds.push(...team2);
+                    triplettePlayerIds.push(...team2.map(p => p.id));
                     matches.push(this.createMatch(matchNumber++, team1, team2));
                 }
                 break;
 
             case 3: // Avant-dernière en 3v3, dernière en 2v3
-            while (remainingPlayers.length > 11) {
-                const team1 = remainingPlayers.splice(0, 2);
-                const team2 = remainingPlayers.splice(0, 2);
-                matches.push(this.createMatch(matchNumber++, team1, team2));
-            }
-            if (remainingPlayers.length === 11) {
-                const team1 = remainingPlayers.splice(0, 3);
-                triplettePlayerIds.push(...team1);
-        
-                const team2 = remainingPlayers.splice(0, 3);
-                triplettePlayerIds.push(...team2);
-        
-                matches.push(this.createMatch(matchNumber++, team1, team2));
-                
-                // Pour éviter la duplication des joueurs
-                const lastTeam1 = remainingPlayers.splice(0, 2);
-                const lastTeam2 = remainingPlayers.splice(0, 3);
-                
-                // Ajouter uniquement les joueurs non encore ajoutés à triplettePlayerIds
-                triplettePlayerIds.push(...lastTeam2);
-        
-                matches.push(this.createMatch(matchNumber++, lastTeam1, lastTeam2));
-            }
-            break;
-            
+                while (remainingPlayers.length > 11) {
+                    const team1 = remainingPlayers.splice(0, 2);
+                    const team2 = remainingPlayers.splice(0, 2);
+                    matches.push(this.createMatch(matchNumber++, team1, team2));
+                }
+                if (remainingPlayers.length === 11) {
+                    const team1 = remainingPlayers.splice(0, 3);
+                    triplettePlayerIds.push(...team1.map(p => p.id));
+
+                    const team2 = remainingPlayers.splice(0, 3);
+                    triplettePlayerIds.push(...team2.map(p => p.id));
+
+                    matches.push(this.createMatch(matchNumber++, team1, team2));
+
+				 
+															  
+                    const lastTeam1 = remainingPlayers.splice(0, 2);
+                    const lastTeam2 = remainingPlayers.splice(0, 3);
+
+                    triplettePlayerIds.push(...lastTeam2.map(p => p.id));
+														  
+
+                    matches.push(this.createMatch(matchNumber++, lastTeam1, lastTeam2));
+                }
+                break;
         }
-        // Logs de débogage
+
         console.log("triplettePlayerIds :", triplettePlayerIds);
         return { matches, triplettePlayerIds };
     }
 
-    private createMatch(number: number, team1: number[], team2: number[]): Match {
+    private static createMatch(matchNumber: number, team1: Player[], team2: Player[]): Match {
+        const formatTeam = (team: Player[]) => team.map(p => p.id).join(", ").trim();
+        const team1Text = formatTeam(team1);
+        const team2Text = formatTeam(team2);
         return {
-            matchNumber: number,
-            matchText: `${team1.join(", ")} contre ${team2.join(", ")}`
+            matchNumber,
+            matchText: team1Text && team2Text ? `${team1Text} contre ${team2Text}` : "Match incomplet",
         };
+        //console.log(`Match ${i + Math.floor(playerCount / 4) + 1}: ${team1.join(", ")} contre ${team2.join(", ")}`);
     }
 
-    private shuffleArray(array: number[]): void {
+    private static shuffleArray(array: Player[]): void {
         for (let i = array.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [array[i], array[j]] = [array[j], array[i]];
         }
     }
-
-    private createMatch(matchNumber: number, team1: number[], team2: number[]): Match {
-        return {
-            matchNumber,
-            matchText: `${team1.join(", ")} contre ${team2.join(", ")}`,
-        };
-    }
-
-    public updateTripletteBonus(players: Map<number, Player>, triplettePlayerIds: number[]): Map<number, Player> {
-        const newPlayers = new Map(players);
-        triplettePlayerIds.forEach(id => {
-            const player = newPlayers.get(id);
-            if (player) {
-                newPlayers.set(id, { ...player, bonus: player.bonus + 1 });
-            }
-        });
-        return newPlayers;
-    }
-
-    public updatePlayerBonus(players: Map<number, Player>, triplettePlayerIds: number[]): Map<number, Player> {
-        const newPlayers = new Map(players);
-        for (const [id, player] of newPlayers) {
-            if (!player.present) {
-                newPlayers.set(id, { ...player, bonus: 0 });
-            } else if (triplettePlayerIds.includes(id)) {
-                newPlayers.set(id, { ...player, bonus: player.bonus + 1 });
-            } else {
-                newPlayers.set(id, { ...player, bonus: Math.max(0, player.bonus - 1) });
-            }
-        }
-        return newPlayers;
-    }
-
-    private filterPlayersWithBonus(players: Player[]): {
-        withBonus: Player[],
-        withoutBonus: Player[]
-    } {
-        return {
-            withBonus: players.filter(p => p.bonus > 0),
-            withoutBonus: players.filter(p => p.bonus === 0)
-        };
-    }
+  
 }
+
+
+function  updatePlayerBonus(players: Map<number, Player>, triplettePlayerIds: number[]): void { 
+	players.forEach(player => {
+		if (!player.present) {
+			player.bonus = 0;
+		} else if (triplettePlayerIds.includes(player.id)) {
+			player.bonus += 1;
+		} else {
+			player.bonus = Math.max(0, player.bonus - 1);
+		}
+	});
+}  
+
+
+
+export {updatePlayerBonus}
+//export {createMatch      }

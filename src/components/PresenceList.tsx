@@ -6,7 +6,7 @@ import { Player } from '../types/match.types';
 
 interface PresenceListProps {
   playerCount: string;
-  presentPlayers: Set<number>;
+  presentPlayers: Player[];
   onTogglePresence: (playerId: number) => void;
   players?: Map<number, Player>;  // Make optional
   triplettePlayerIds: number[];  // Add this
@@ -65,18 +65,22 @@ const PresenceList: React.FC<PresenceListProps> = ({
           </div>
           <div className="flex justify-between items-center mt-2">
             <span className="text-gray-600">Présents:</span>
-            <span className="font-semibold text-green-600">{presentPlayers.size}</span>
+            <span className="font-semibold text-green-600">
+			{Array.isArray(presentPlayers) ? presentPlayers.length : 0}
+			</span>
           </div>
           <div className="flex justify-between items-center mt-2">
             <span className="text-gray-600">Absents:</span>
-            <span className="font-semibold text-red-600">{count - presentPlayers.size}</span>
+			<span className="font-semibold text-red-600">
+			{Array.isArray(presentPlayers) ? count - presentPlayers.length : count}
+			</span>
           </div>
         </div>
 
         <div className="grid grid-cols-5 gap-4">
           {Array.from({ length: count }, (_, index) => {
             const playerNumber = index + 1;
-            const isPresent = presentPlayers.has(playerNumber);
+            const isPresent = Array.isArray(presentPlayers) && presentPlayers.some(player => player.id === playerNumber && player.present);
             const inTriplette = isPresent && triplettePlayerIds.includes(playerNumber);
             const bgColor = getPlayerColor(isPresent, inTriplette);
             
@@ -101,9 +105,11 @@ const PresenceList: React.FC<PresenceListProps> = ({
             <span>Accueil</span>
           </button>
           <div className="flex gap-2">
+		    {console.log('presentPlayers:', presentPlayers)}
             <button
               onClick={() => navigate('/draw')}
-              className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md font-semibold hover:bg-blue-700 transition-colors"
+              className={`flex items-center gap-2 bg-green-600 text-white px-6 py-3 rounded-md font-semibold hover:bg-green-700 transition-colors ${presentPlayers.length < 4 ? 'opacity-50 cursor-not-allowed' : ''}`}
+        disabled={presentPlayers.length < 4}
             >
               <FaDice className="text-xl" />
               <span>TIRAGE</span>

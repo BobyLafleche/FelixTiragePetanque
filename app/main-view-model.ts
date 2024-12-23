@@ -54,11 +54,10 @@ export class HelloWorldModel extends Observable {
             this._matches.splice(0);
             let matchNumber = 1;
             const modulo = count % 4;
-            const baseTeamsCount = Math.floor(count / 4);
 
             switch (modulo) {
                 case 0: // Que des doublettes
-                    for (let i = 0; i < baseTeamsCount; i++) {
+                    for (let i = 0; i < modulo; i++) {
                         const team1 = players.splice(0, 2);
                         const team2 = players.splice(0, 2);
                         this._matches.push({
@@ -69,7 +68,7 @@ export class HelloWorldModel extends Observable {
                     break;
 
                 case 1: // Dernière ligne en 2v3
-                    for (let i = 0; i < baseTeamsCount - 1; i++) {
+                    for (let i = 0; i < modulo - 1; i++) {
                         const team1 = players.splice(0, 2);
                         const team2 = players.splice(0, 2);
                         this._matches.push({
@@ -86,7 +85,7 @@ export class HelloWorldModel extends Observable {
                     break;
 
                 case 2: // Dernière ligne en 3v3
-                    for (let i = 0; i < baseTeamsCount - 1; i++) {
+                    for (let i = 0; i < modulo - 1; i++) {
                         const team1 = players.splice(0, 2);
                         const team2 = players.splice(0, 2);
                         this._matches.push({
@@ -103,7 +102,7 @@ export class HelloWorldModel extends Observable {
                     break;
 
                 case 3: // Avant-dernière en 3v3, dernière en 2v3
-                    for (let i = 0; i < baseTeamsCount - 2; i++) {
+                    for (let i = 0; i < modulo - 2; i++) {
                         const team1 = players.splice(0, 2);
                         const team2 = players.splice(0, 2);
                         this._matches.push({

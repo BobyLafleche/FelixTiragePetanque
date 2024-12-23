@@ -31,9 +31,10 @@ const TeamsDisplay: React.FC<TeamsDisplayProps> = ({ matches, onBack }) => {
         <div className="space-y-4">
           {matches && matches.map((match, index) => (
             <div key={index} className="p-4 bg-gray-50 rounded-md">
-              <div className="text-lg">
-                {index + 1}. {match.matchText}
-              </div>
+				<div className="flex justify-between text-lg">
+				  <span>{index + 1}.</span>
+				  <span>{match.matchText}</span>
+				</div>
             </div>
           ))}
         </div>
