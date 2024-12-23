@@ -1,17 +1,22 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaUsers } from 'react-icons/fa';
+import { Player,Match } from '../types/match.types';
 
 interface HomePageProps {
   playerCount: string;
   onPlayerCountChange: (count: string) => void;
   onReset: () => void;
+  presentPlayers: Player[];
+  onMatchesUpdate: (drawResult: { matches: Match[]; triplettePlayerIds: number[]; }) => void;
 }
 
 const HomePage: React.FC<HomePageProps> = ({
   playerCount,
   onPlayerCountChange,
-  onReset
+  onReset,
+  presentPlayers,
+  onMatchesUpdate
 }) => {
   const navigate = useNavigate();
   const count = parseInt(playerCount);
@@ -36,11 +41,11 @@ const HomePage: React.FC<HomePageProps> = ({
               <input
                 id="playerCount"
                 type="number"
-                className="flex-1 p-3 border rounded-md text-lg appearance-none"
-                min="4"
-                max="99"
                 value={playerCount}
                 onChange={(e) => onPlayerCountChange(e.target.value)}
+                className="flex-1 p-3 border rounded-md text-lg"
+                min="4"
+                max="99"
                 placeholder="Entrez un nombre"
                 required
               />

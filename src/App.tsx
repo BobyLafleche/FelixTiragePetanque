@@ -1,22 +1,29 @@
+import React from 'react';
 import { useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import HomePage from './components/HomePage';
 import PresenceList from './components/PresenceList';
 import DrawPage from './components/DrawPage';
 import TeamsDisplay from './components/TeamsDisplay';
-import { Match } from './services/team-draw.service';
+import { Match, Player } from './types/match.types';
+import { TeamDrawService,updatePlayerBonus } from './services/team-draw.service';
 
 function App() {
   const [playerCount, setPlayerCount] = useState('');
+  const [matchesState, setMatchesState] = useState<Match[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
-  const [presentPlayers, setPresentPlayers] = useState<Set<number>>(new Set());
+  const [presentPlayers, setPresentPlayers] = useState<Player[]>([]);
+  const [triplettePlayerIds, setTriplettePlayerIds] = useState<number[]>([]);
+  const [players, setPlayers] = useState<Map<number, Player>>(new Map());
+  //const { TeamDrawService } = await import('./services/team-draw.service');
+  const teamDrawService = new TeamDrawService();
 
   const handlePlayerCountChange = (count: string) => {
     setPlayerCount(count);
     if (!isNaN(parseInt(count))) {
-      const newPresent = new Set<number>();
+      const newPresent: Player[] = [];
       for (let i = 1; i <= parseInt(count); i++) {
-        newPresent.add(i);
+        newPresent.push({ id: i, present: true, bonus: 0 });
       }
       setPresentPlayers(newPresent);
     }
@@ -24,23 +31,48 @@ function App() {
 
   const handleReset = () => {
     setPlayerCount('');
-    setPresentPlayers(new Set());
+    setPresentPlayers([]);
     setMatches([]);
+	setTriplettePlayerIds([]);
+    setPlayers(new Map());
   };
 
   const handleTogglePresence = (playerId: number) => {
-    const newPresent = new Set(presentPlayers);
-    if (newPresent.has(playerId)) {
-      newPresent.delete(playerId);
-    } else {
-      newPresent.add(playerId);
-    }
-    setPresentPlayers(newPresent);
+    setPresentPlayers(prev => prev.map(player => 
+      player.id === playerId ? { ...player, present: !player.present } : player
+    ));
   };
 
-  const handleMatchesUpdate = (newMatches: Match[]) => {
-    setMatches(newMatches);
-  };
+	//const updatePlayerBonus = (players, triplettePlayerIds) => {
+    //return players.map(player => {
+    //    if (!player.present) {
+    //        return { ...player, bonus: 0 };
+    //    } else if (triplettePlayerIds.includes(player.id)) {
+    //        return { ...player, bonus: player.bonus + 1 };
+    //    } else {
+    //        return { ...player, bonus: Math.max(0, player.bonus - 1) };
+    //    }
+    //});
+  //};
+
+    const handleMatchesUpdate = (drawResult: { matches: Match[], triplettePlayerIds: number[] }) => {
+        setMatches(drawResult.matches);
+        setTriplettePlayerIds(drawResult.triplettePlayerIds);
+
+        // Mettez à jour les joueurs en utilisant la méthode updatePlayerBonus
+//        setPresentPlayers(prevPlayers => 
+            updatePlayerBonus(players, drawResult.triplettePlayerIds)
+//        );
+    };
+
+//	const handleMatchesUpdate = (drawResult: { matches: Match[], triplettePlayerIds: number[] }) => {
+//		setMatches(drawResult.matches);
+//		
+//		// Mettez à jour les joueurs en utilisant la méthode updatePlayerBonus
+//		setPresentPlayers(prevPlayers => 
+//			teamDrawService.updatePlayerBonus(prevPlayers, drawResult.triplettePlayerIds)
+//		);
+//	};
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -56,6 +88,8 @@ function App() {
               playerCount={playerCount}
               onPlayerCountChange={handlePlayerCountChange}
               onReset={handleReset}
+              presentPlayers={presentPlayers}
+              onMatchesUpdate={handleMatchesUpdate}              
             />
           } 
         />
@@ -67,6 +101,8 @@ function App() {
                 playerCount={playerCount}
                 presentPlayers={presentPlayers}
                 onTogglePresence={handleTogglePresence}
+                triplettePlayerIds={triplettePlayerIds}
+                players={players}													   
               />
             ) : (
               <Navigate to="/" replace />
@@ -79,7 +115,7 @@ function App() {
             parseInt(playerCount) >= 4 ? (
               <DrawPage 
                 playerCount={playerCount}
-                presentPlayers={Array.from(presentPlayers)}
+                presentPlayers={presentPlayers.filter(p => p.present)}
                 onMatchesUpdate={handleMatchesUpdate}
               />
             ) : (

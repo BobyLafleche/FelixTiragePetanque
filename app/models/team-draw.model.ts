@@ -8,12 +8,12 @@ export class TeamDrawModel {
         const matches: string[] = [];
         
         const modulo = playerCount % 4;
-        const baseTeamsCount = Math.floor(playerCount / 4);
+        const modulo = Math.floor(playerCount / 4);
         
         // Traiter selon le modulo
         switch (modulo) {
             case 0: // Que des doublettes
-                for (let i = 0; i < baseTeamsCount; i++) {
+                for (let i = 0; i < modulo; i++) {
                     const team1 = players.splice(0, 2);
                     const team2 = players.splice(0, 2);
                     matches.push(`${team1[0]}, ${team1[1]} contre ${team2[0]}, ${team2[1]}`);
@@ -21,7 +21,7 @@ export class TeamDrawModel {
                 break;
                 
             case 1: // Le dernier joueur va dans la dernière ligne pour faire 2v3
-                for (let i = 0; i < baseTeamsCount - 1; i++) {
+                for (let i = 0; i < modulo - 1; i++) {
                     const team1 = players.splice(0, 2);
                     const team2 = players.splice(0, 2);
                     matches.push(`${team1[0]}, ${team1[1]} contre ${team2[0]}, ${team2[1]}`);
@@ -33,7 +33,7 @@ export class TeamDrawModel {
                 break;
                 
             case 2: // Les deux derniers joueurs font une triplette
-                for (let i = 0; i < baseTeamsCount - 1; i++) {
+                for (let i = 0; i < modulo - 1; i++) {
                     const team1 = players.splice(0, 2);
                     const team2 = players.splice(0, 2);
                     matches.push(`${team1[0]}, ${team1[1]} contre ${team2[0]}, ${team2[1]}`);
@@ -45,7 +45,7 @@ export class TeamDrawModel {
                 break;
                 
             case 3: // Avant-dernière ligne en 3v3 et dernière ligne en 2v3
-                for (let i = 0; i < baseTeamsCount - 2; i++) {
+                for (let i = 0; i < modulo - 2; i++) {
                     const team1 = players.splice(0, 2);
                     const team2 = players.splice(0, 2);
                     matches.push(`${team1[0]}, ${team1[1]} contre ${team2[0]}, ${team2[1]}`);
