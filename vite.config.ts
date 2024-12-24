@@ -3,6 +3,12 @@ import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
+  build: {
+    // Cette option vide le dossier de build avant de remplir avec la nouvelle build
+    emptyOutDir: true,
+    outDir: 'dist',  // Assurez-vous que le dossier de build est bien spécifié
+    cache: false,  // Désactive le cache
+  },
   plugins: [
     react(),
     VitePWA({
@@ -33,7 +39,10 @@ export default defineConfig({
             purpose: 'any maskable'
           }
         ]
-      }
+      },
+      devOptions: {
+        enabled: false, // désactiver le service worker
+      },
     })
   ]
 });
