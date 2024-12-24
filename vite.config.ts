@@ -41,7 +41,7 @@ export default defineConfig({
         ]
       },
       devOptions: {
-        enabled: false, // désactiver le service worker
+        enabled: false, // désactiver le service worker en mode développement
       },
     })
   ]

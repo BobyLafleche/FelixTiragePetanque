@@ -22,3 +22,17 @@ input[type=number]::-webkit-outer-spin-button {
 input[type=number] {
     -moz-appearance: textfield; /* Firefox */
 }
+
+.nav-link {
+  color: #000; /* Default text color */
+  text-decoration: none; /* Remove underline */
+  transition: color 0.3s ease, transform 0.3s ease, background-color 0.3s ease; /* Smooth transition */
+  padding: 5px 10px; /* Add some padding */
+  border-radius: 5px; /* Rounded corners */
+}
+
+.nav-link:hover {
+  color: #fff; /* Change text color on hover */
+  background-color: #007BFF; /* Change background color on hover */
+  transform: scale(1.05); /* Slightly increase size */
+}

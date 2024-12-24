@@ -118,10 +118,10 @@ const PresenceList: React.FC<PresenceListProps> = ({
           </div>
         </div>
         <div className="mt-4 flex justify-start items-center gap-4">
-          <button onClick={()=> navigate('/')} className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors" >
+          <a href="/" className="nav-link flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors" >
             <FaHome />
             <span>Accueil</span>
-          </button>
+          </a>
           <div className="flex items-center gap-1  ml-auto">
             <div className="w-3 h-3 rounded-full bg-red-600"></div>
             <span className="text-sm text-gray-600">Présent</span>
