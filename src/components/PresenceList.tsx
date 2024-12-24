@@ -105,17 +105,24 @@ const PresenceList: React.FC<PresenceListProps> = ({
           })}
         </div>
 
-        <div className="mt-6 flex justify-between items-center">
-          <button
-            onClick={() => navigate('/')}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors"
-          >
+        <div className="mt-6 flex justify-end items-center">
+          <div className="flex gap-2">
+            <button onClick={()=> navigate('/draw')} className={`flex items-center gap-2 bg-green-600 text-white px-6 py-3 rounded-md font-semibold hover:bg-green-700 transition-colors ${presentPlayers.length < 4 ? 'opacity-50 cursor-not-allowed' : '' }`} disabled={presentPlayers.length < 4}>
+                <FaDice className="text-xl" />
+                <span>TIRAGE</span>
+            </button>
+            <button onClick={()=> navigate('/teams')} className={`flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-md font-semibold hover:bg-purple-700 transition-colors ${isMatchesEmpty ? 'opacity-50 cursor-not-allowed' : ''}`} disabled={isMatchesEmpty} >
+              <FaUsers className="text-xl" />
+              <span>ÉQUIPES</span>
+            </button>
+          </div>
+        </div>
+        <div className="mt-4 flex justify-start items-center gap-4">
+          <button onClick={()=> navigate('/')} className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors" >
             <FaHome />
             <span>Accueil</span>
           </button>
-        </div>
-        <div className="flex gap-2 mt-4">
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1  ml-auto">
             <div className="w-3 h-3 rounded-full bg-red-600"></div>
             <span className="text-sm text-gray-600">Présent</span>
           </div>
@@ -124,26 +131,6 @@ const PresenceList: React.FC<PresenceListProps> = ({
             <span className="text-sm text-gray-600">Absent</span>
           </div>
         </div>
-        <div className="flex gap-2 mt-4">
-          <button
-            onClick={() => navigate('/draw')}
-            className={`flex items-center gap-2 bg-green-600 text-white px-6 py-3 rounded-md font-semibold hover:bg-green-700 transition-colors ${presentPlayers.length < 4 ? 'opacity-50 cursor-not-allowed' : ''}`}
-            disabled={presentPlayers.length < 4}
-          >
-            <FaDice className="text-xl" />
-            <span>TIRAGE</span>
-          </button>
-          <button
-            onClick={() => navigate('/teams')}
-            className={`flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-md font-semibold hover:bg-purple-700 transition-colors 
-            ${isMatchesEmpty ? 'opacity-50 cursor-not-allowed' : ''}`}
-            disabled={isMatchesEmpty}
-          >			
-            <FaUsers className="text-xl" />
-            <span>ÉQUIPES</span>
-          </button>
-        </div>
-
       </div>
     </main>
   );
