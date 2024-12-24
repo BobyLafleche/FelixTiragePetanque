@@ -2,22 +2,23 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaHome, FaDice, FaUsers } from 'react-icons/fa';
 import PlayerCircle from './PlayerCircle';
-import { Player } from '../types/match.types';
+import { Player ,Match} from '../types/match.types';
 
 interface PresenceListProps {
   playerCount: string;
   presentPlayers: Player[];
   onTogglePresence: (playerId: number) => void;
   players?: Map<number, Player>;  // Make optional
-  triplettePlayerIds: number[];  // Add this
+  triplettePlayerIds: number[];
+  matches: Match[]; 
+  isMatchesEmpty: boolean // Add this line
 }
 
 const getPlayerColor = (isPresent: boolean, inTriplette: number): string => {
   if (!isPresent) return 'bg-gray-300'; // Joueur absent : gris
-  if (inTriplette === 1) return 'bg-red-500';    // Rouge intense
-  if (inTriplette === 2) return 'bg-orange-400'; // Orange vif
-  if (inTriplette === 3) return 'bg-yellow-400'; // Jaune lumineux
-  if (inTriplette >= 4) return 'bg-lime-400';    // Vert tendre
+  if (inTriplette === 1) return 'bg-orange-400'; // Orange vif
+  if (inTriplette === 2) return 'bg-yellow-400'; // Jaune lumineux
+  if (inTriplette >= 3) return 'bg-lime-400';    // Vert tendre
   return 'bg-red-500'; // Par défaut, rouge intense
 };
 
@@ -28,7 +29,9 @@ const PresenceList: React.FC<PresenceListProps> = ({
   presentPlayers,
   onTogglePresence,
   players = new Map(),  // Provide default value
-  triplettePlayerIds = []
+  triplettePlayerIds = [],
+  matches,
+  isMatchesEmpty // Add this line
 }) => {
   const navigate = useNavigate();
   const count = parseInt(playerCount);
@@ -111,7 +114,6 @@ const PresenceList: React.FC<PresenceListProps> = ({
             <span>Accueil</span>
           </button>
           <div className="flex gap-2">
-		    {console.log('presentPlayers:', presentPlayers)}
             <button
               onClick={() => navigate('/draw')}
               className={`flex items-center gap-2 bg-green-600 text-white px-6 py-3 rounded-md font-semibold hover:bg-green-700 transition-colors ${presentPlayers.length < 4 ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -122,8 +124,10 @@ const PresenceList: React.FC<PresenceListProps> = ({
             </button>
             <button
               onClick={() => navigate('/teams')}
-              className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md font-semibold hover:bg-green-700 transition-colors"
-            >
+              className={`flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-md font-semibold hover:bg-purple-700 transition-colors 
+              ${isMatchesEmpty ? 'opacity-50 cursor-not-allowed' : ''}`}
+              disabled={isMatchesEmpty}
+            >			
               <FaUsers className="text-xl" />
               <span>ÉQUIPES</span>
             </button>

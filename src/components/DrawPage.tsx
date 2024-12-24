@@ -47,7 +47,6 @@ const DrawPage: React.FC<DrawPageProps> = ({ playerCount, presentPlayers, onMatc
           <p>Joueurs présents: {presentPlayers.length} / {playerCount}</p>
         </div>
         <div className="flex gap-2 justify-center">
-          {console.log('presentPlayers:', presentPlayers)}
           <button
             onClick={handleDraw}
             className={`flex items-center gap-2 bg-green-600 text-white px-6 py-3 rounded-md font-semibold hover:bg-green-700 transition-colors ${presentPlayers.length < 4 ? 'opacity-50 cursor-not-allowed' : ''}`}

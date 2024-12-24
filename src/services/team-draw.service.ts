@@ -15,8 +15,28 @@ export class TeamDrawService {
             };
         }
         console.log("Présents :", presentPlayers);
-        const players = [...presentPlayers];
-        this.shuffleArray(players);
+        //const players = [...presentPlayers];
+        //this.shuffleArray(players);
+		// Séparer les joueurs en groupes en fonction de leurs bonus
+		const playersWithBonus3 = presentPlayers.filter(player => player.bonus >= 3);
+		const playersWithBonus2 = presentPlayers.filter(player => player.bonus === 2);
+		const playersWithBonus1 = presentPlayers.filter(player => player.bonus === 1);
+		const playersWithBonus0 = presentPlayers.filter(player => player.bonus === 0);
+
+		// Mélanger chaque groupe séparément
+		this.shuffleArray(playersWithBonus3);
+		this.shuffleArray(playersWithBonus2);
+		this.shuffleArray(playersWithBonus1);
+		this.shuffleArray(playersWithBonus0);
+
+		// Combiner tous les groupes mélangés
+		const players = [
+			...playersWithBonus3,
+			...playersWithBonus2,
+			...playersWithBonus1,
+			...playersWithBonus0
+		];		
+		
         const matches: Match[] = [];
         const triplettePlayerIds: number[] = [];
         const modulo = playerCount % 4;

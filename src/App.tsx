@@ -74,6 +74,10 @@ function App() {
 //		);
 //	};
 
+  const isMatchesEmpty = () => {
+    return matches.length === 0;
+  };
+
   return (
     <div className="min-h-screen bg-gray-100">
       <header className="bg-blue-600 text-white p-4 shadow-md">
@@ -101,8 +105,10 @@ function App() {
                 playerCount={playerCount}
                 presentPlayers={presentPlayers}
                 onTogglePresence={handleTogglePresence}
-                triplettePlayerIds={triplettePlayerIds}
                 players={players}													   
+                triplettePlayerIds={triplettePlayerIds}
+                matches={matches}
+                isMatchesEmpty={isMatchesEmpty()}
               />
             ) : (
               <Navigate to="/" replace />
