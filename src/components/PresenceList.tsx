@@ -68,7 +68,10 @@ const PresenceList: React.FC<PresenceListProps> = ({
         <div className="bg-gray-50 rounded-lg p-4 mb-6">
           <div className="flex justify-between items-center">
             <span className="text-gray-600">Total joueurs:</span>
-            <span className="font-semibold">{count}</span>
+            <div className="tooltip">
+              <span className="font-semibold">{count}</span>
+              {Array.isArray(presentPlayers) && presentPlayers.some(player => player.bonus > 0) && <span className="tooltip-text">Bonus: {Array.isArray(presentPlayers) && presentPlayers.find(player => player.bonus > 0)?.bonus}</span>}
+            </div>
           </div>
           <div className="flex justify-between items-center mt-2">
             <span className="text-gray-600">Présents:</span>
@@ -89,17 +92,18 @@ const PresenceList: React.FC<PresenceListProps> = ({
             const playerNumber = index + 1;
             const isPresent = Array.isArray(presentPlayers) && presentPlayers.some(player => player.id === playerNumber && player.present);
 			const inTriplette = Array.isArray(presentPlayers)  ? presentPlayers.find(player => player.id === playerNumber)?.bonus || 0  : 0;
-            //const inTriplette = Array.isArray(presentPlayers) && presentPlayers.some(player => player.id === playerNumber && player.bonus);
-			//const inTriplette = isPresent && triplettePlayerIds.includes(playerNumber);
             const bgColor = getPlayerColor(isPresent, inTriplette);
             
             return (
               <div key={playerNumber} className={`rounded-full ${CircleSize} ${bgColor}`}>
-                <PlayerCircle
-                  number={playerNumber}
-                  isPresent={isPresent}
-                  onClick={() => onTogglePresence(playerNumber)}
-                />
+                <div className="tooltip">
+                  <PlayerCircle
+                    number={playerNumber}
+                    isPresent={isPresent}
+                    onClick={() => onTogglePresence(playerNumber)}
+                  />
+                  {Array.isArray(presentPlayers) && presentPlayers.find(player => player.id === playerNumber)?.bonus > 0 && <span className="tooltip-text">Bonus: {Array.isArray(presentPlayers) && presentPlayers.find(player => player.id === playerNumber)?.bonus}</span>}
+                </div>
               </div>
             );
           })}
