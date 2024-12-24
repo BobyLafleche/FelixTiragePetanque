@@ -43,40 +43,28 @@ function App() {
     ));
   };
 
-	//const updatePlayerBonus = (players, triplettePlayerIds) => {
-    //return players.map(player => {
-    //    if (!player.present) {
-    //        return { ...player, bonus: 0 };
-    //    } else if (triplettePlayerIds.includes(player.id)) {
-    //        return { ...player, bonus: player.bonus + 1 };
-    //    } else {
-    //        return { ...player, bonus: Math.max(0, player.bonus - 1) };
-    //    }
-    //});
-  //};
-
     const handleMatchesUpdate = (drawResult: { matches: Match[], triplettePlayerIds: number[] }) => {
         setMatches(drawResult.matches);
         setTriplettePlayerIds(drawResult.triplettePlayerIds);
-
-        // Mettez à jour les joueurs en utilisant la méthode updatePlayerBonus
-//        setPresentPlayers(prevPlayers => 
-            updatePlayerBonus(presentPlayers, drawResult.triplettePlayerIds)
-//        );
+        const presentPlayersMap = new Map<number, Player>(presentPlayers.map(player => [player.id, player]));
+        updatePlayerBonus(presentPlayersMap, drawResult.triplettePlayerIds)
     };
-
-//	const handleMatchesUpdate = (drawResult: { matches: Match[], triplettePlayerIds: number[] }) => {
-//		setMatches(drawResult.matches);
-//		
-//		// Mettez à jour les joueurs en utilisant la méthode updatePlayerBonus
-//		setPresentPlayers(prevPlayers => 
-//			teamDrawService.updatePlayerBonus(prevPlayers, drawResult.triplettePlayerIds)
-//		);
-//	};
 
   const isMatchesEmpty = () => {
     return matches.length === 0;
   };
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js')
+            .then((registration) => {
+                console.log('Service Worker registered with scope:', registration.scope);
+            })
+            .catch((error) => {
+                console.error('Service Worker registration failed:', error);
+            });
+    });
+  }
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -105,7 +93,7 @@ function App() {
                 playerCount={playerCount}
                 presentPlayers={presentPlayers}
                 onTogglePresence={handleTogglePresence}
-                players={players}													   
+                players={players}												   
                 triplettePlayerIds={triplettePlayerIds}
                 matches={matches}
                 isMatchesEmpty={isMatchesEmpty()}

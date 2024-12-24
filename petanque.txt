@@ -1,0 +1,39 @@
+
+
+analyse ce projet ; je souhaite modifier la facon dont ce passe le tirage ;
+
+les joueurs ne souhaitent pas faire des triplettes successives.
+je voudrais que les joueurs ayant participés à une triplette aient leur bonus qui augmente
+lors du tirage suivant les joueurs ayant un bonus ne doivent pas etre dans les triplettes
+pour visualiser les bonus dans la feuille de tirage les joueurs avec bonus, passent du rouge a l'orange
+
+
+Structure de l'application
+	Page d'accueil
+	Liste de présence
+	Page de tirage
+	Page des équipes
+Fonctionnalités principales
+	Page d'accueil
+		Formulaire de saisie du nombre de joueurs
+		Validation du nombre (entre 4 et 99)
+		Bouton de réinitialisation (RAZ)
+		Bouton "FEUILLE DE PRÉSENCE" (apparaît si le nombre est valide)
+	Navigation automatique vers la liste de présence après saisie valide
+	Liste de présence
+		Affichage de cercles cliquables pour chaque joueur
+		Deux boutons : "Tirage" et "Équipes"
+	Page de tirage
+		Fonctionnalité pour effectuer le tirage des équipes
+	Page des équipes
+		Affichage des équipes formées
+		
+	Interface utilisateur
+		Design simple et intuitif
+		Navigation fluide entre les différentes pages
+		Interaction utilisateur via des boutons et des éléments cliquables
+		
+L'application est conçue pour effectuer le tirage au sort d'équipe de pétanque, parmi une liste de présent , marqué en rouge.
+
+ 
+

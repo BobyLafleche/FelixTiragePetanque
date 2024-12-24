@@ -18,7 +18,7 @@ const PlayerCircle: React.FC<PlayerCircleProps> = ({ number, onClick }) => (
     `}
     onClick={onClick}
   >
-	<span className="text-xl font-bold text-blue-800">
+	<span className="text-xl font-bold text-cyan-200">
 	{number}
     </span>
   </button>
