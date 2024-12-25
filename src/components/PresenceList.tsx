@@ -91,7 +91,8 @@ const PresenceList: React.FC<PresenceListProps> = ({
           {Array.from({ length: count }, (_, index) => {
             const playerNumber = index + 1;
             const isPresent = Array.isArray(presentPlayers) && presentPlayers.some(player => player.id === playerNumber && player.present);
-			const inTriplette = Array.isArray(presentPlayers)  ? presentPlayers.find(player => player.id === playerNumber)?.bonus || 0  : 0;
+			const foundPlayer = presentPlayers.find(player => player.id === playerNumber);
+			const inTriplette = foundPlayer?.bonus || 0;
             const bgColor = getPlayerColor(isPresent, inTriplette);
             
             return (
@@ -102,7 +103,8 @@ const PresenceList: React.FC<PresenceListProps> = ({
                     isPresent={isPresent}
                     onClick={() => onTogglePresence(playerNumber)}
                   />
-                  {Array.isArray(presentPlayers) && presentPlayers.find(player => player.id === playerNumber)?.bonus > 0 && <span className="tooltip-text">Bonus: {Array.isArray(presentPlayers) && presentPlayers.find(player => player.id === playerNumber)?.bonus}</span>}
+                  {Array.isArray(presentPlayers) && foundPlayer && foundPlayer.bonus > 0 && 
+                    <span className="tooltip-text">Bonus: {foundPlayer.bonus}</span>}
                 </div>
               </div>
             );
