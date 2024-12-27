@@ -35,13 +35,18 @@ const DrawPage: React.FC<DrawPageProps> = ({ playerCount, presentPlayers, onMatc
       <div className="bg-white rounded-lg shadow-md p-6 mb-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold">Tirage au sort</h2>
-          <button 
-            onClick={() => navigate('/presence')}
-            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md font-semibold"
-          >
-            <FaUsers />
-            <span>PRÉSENCE</span>
-          </button>
+          <div className="flex items-center">
+            <button 
+              onClick={() => navigate('/presence')}
+              className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md font-semibold"
+            >
+              <FaUsers />
+              <span>PRÉSENCE</span>
+            </button>
+            <button id="settingsBtn" className="ml-4">
+              <i className="fas fa-cog"></i>
+            </button>
+          </div>
         </div>
         <div className="text-center mb-4">
           <p>Joueurs présents: {presentPlayers.length} / {playerCount}</p>
