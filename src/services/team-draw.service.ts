@@ -138,13 +138,20 @@ export class TeamDrawService {
 
 
 function  updatePlayerBonus(players: Map<number, Player>, triplettePlayerIds: number[]): void { 
+    // Lire les paramètres sauvegardés depuis localStorage
+    const savedDuration = Number(localStorage.getItem('duration')) || 0; // Valeur par défaut : 0
+
 	players.forEach(player => {
+		player.drawCount += 1;
 		if (!player.present) {
 			player.bonus = 0;
+			player.drawCount = 0;
 		} else if (triplettePlayerIds.includes(player.id)) {
 			player.bonus += 1;
-		} else {
+		} else if (player.drawCount >= savedDuration) {			
 			player.bonus = Math.max(0, player.bonus - 1);
+			if (!player.bonus)
+				player.drawCount = 0;			
 		}
 	});
 }  

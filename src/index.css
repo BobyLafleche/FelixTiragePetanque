@@ -90,3 +90,31 @@ input[type=number]::-webkit-outer-spin-button {
     border-radius: 5px;
     cursor: pointer;
 }
+
+/* Contenu de la tooltip (caché par défaut) */
+.tooltip-content {
+  display: none; /* Caché par défaut */
+  position: absolute;
+  bottom: 100%; /* Positionner la tooltip au-dessus de l'élément déclencheur */
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(82,96,161, 0.6);
+  color: white; /* Texte blanc */
+  padding: 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  z-index: 100; /* Assurez-vous que la tooltip est au-dessus */
+  white-space: nowrap; /* Empêche le texte de se couper sur plusieurs lignes */
+  text-align: center; /* Centrer le texte */
+}
+
+/* Afficher la tooltip au survol de la zone parent (tooltip-wrapper) */
+.tooltip-wrapper:hover .tooltip-content {
+  display: block; /* Montre la tooltip */
+}
+
+/* Espacer les éléments dans la tooltip */
+.tooltip-content span {
+  display: block; /* Force les éléments à être en bloc, les empilant verticalement */
+  margin-bottom: 4px; /* Espacement entre les éléments */
+}

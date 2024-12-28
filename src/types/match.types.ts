@@ -8,6 +8,7 @@ export interface Player {
     id: number;
     present: boolean;
     bonus: number;
+    drawCount : number;
 }
 
 export interface DrawResult {

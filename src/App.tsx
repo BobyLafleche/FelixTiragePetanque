@@ -24,7 +24,7 @@ function App() {
     if (!isNaN(parseInt(count))) {
       const newPresent: Player[] = [];
       for (let i = 1; i <= parseInt(count); i++) {
-        newPresent.push({ id: i, present: true, bonus: 0 });
+        newPresent.push({ id: i, present: true, bonus: 0, drawCount: 0 });
       }
       setPresentPlayers(newPresent);
     }
@@ -65,27 +65,36 @@ function App() {
     setIsModalOpen(false);
   };
 
-  const openModal = () => {
-    setIsModalOpen(true);
+	const openModal = () => {
+	  setIsModalOpen(true);
 
-    setTimeout(() => {
-      const savedDuration = localStorage.getItem('duration');
-      const savedDiversification = localStorage.getItem('diversification');
+	  setTimeout(() => {
+		// Initialiser les valeurs par défaut dans localStorage si elles n'existent pas
+		if (!localStorage.getItem('duration')) {
+		  localStorage.setItem('duration', '0'); // Valeur par défaut pour 'duration'
+		}
 
-      if (savedDuration) {
-        const durationInput = document.getElementById('duration') as HTMLInputElement;
-        if (durationInput) {
-          durationInput.value = savedDuration;
-        }
-      }
-      if (savedDiversification) {
-        const diversificationInput = document.getElementById('diversification') as HTMLInputElement;
-        if (diversificationInput) {
-          diversificationInput.checked = JSON.parse(savedDiversification);
-        }
-      }
-    }, 0);
-  };
+		if (!localStorage.getItem('diversification')) {
+		  localStorage.setItem('diversification', JSON.stringify(false)); // Valeur par défaut pour 'diversification'
+		}
+
+		// Lire les valeurs de localStorage
+		const savedDuration = localStorage.getItem('duration');
+		const savedDiversification = JSON.parse(localStorage.getItem('diversification') || 'false');
+
+		// Mettre à jour les champs du formulaire modal
+		const durationInput = document.getElementById('duration') as HTMLInputElement;
+		if (durationInput && savedDuration) {
+		  durationInput.value = savedDuration;
+		}
+
+		const diversificationInput = document.getElementById('diversification') as HTMLInputElement;
+		if (diversificationInput) {
+		  diversificationInput.checked = savedDiversification;
+		}
+	  }, 0);
+	};
+
 
   const closeModal = () => setIsModalOpen(false);
 
@@ -105,7 +114,7 @@ function App() {
     <div className="min-h-screen bg-gray-100">
       <header className="bg-blue-600 text-white p-4 shadow-md flex justify-between items-center">
         <h1 className="text-xl font-bold text-center">Tirage au Sort</h1>
-<button id="settingsBtn" class="ml-4 bg-white text-blue-600 p-0 rounded-full w-12 h-12 flex items-center justify-center" onClick={openModal}>
+<button id="settingsBtn" className="ml-4 bg-white text-blue-600 p-0 rounded-full w-12 h-12 flex items-center justify-center" onClick={openModal}>
 
 	<svg viewBox="0 0 24 24" preserveAspectRatio="xMidYMid meet">
 

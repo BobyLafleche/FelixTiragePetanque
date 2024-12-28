@@ -52,7 +52,7 @@ const PresenceList: React.FC<PresenceListProps> = ({
       </main>
     );
   }
-
+	
   return (
     <main className="container mx-auto px-4 py-6 max-w-lg">
       <div className="bg-white rounded-lg shadow-md p-6">
@@ -85,31 +85,47 @@ const PresenceList: React.FC<PresenceListProps> = ({
 			{Array.isArray(presentPlayers) ? count - presentPlayers.filter(player => player.present).length : count}
 			</span>
           </div>
-        </div>
-
-        <div className="grid grid-cols-5 gap-4">
-          {Array.from({ length: count }, (_, index) => {
-            const playerNumber = index + 1;
-            const isPresent = Array.isArray(presentPlayers) && presentPlayers.some(player => player.id === playerNumber && player.present);
-			const foundPlayer = presentPlayers.find(player => player.id === playerNumber);
+		</div>
+		<div className="grid grid-cols-5 gap-4">
+		  {Array.from({ length: count }, (_, index) => {
+			const playerNumber = index + 1;
+			const isPresent =
+			  Array.isArray(presentPlayers) &&
+			  presentPlayers.some(
+				(player) => player.id === playerNumber && player.present
+			  );
+			const foundPlayer = presentPlayers.find(
+			  (player) => player.id === playerNumber
+			);
 			const inTriplette = foundPlayer?.bonus || 0;
-            const bgColor = getPlayerColor(isPresent, inTriplette);
-            
-            return (
-              <div key={playerNumber} className={`rounded-full ${CircleSize} ${bgColor}`}>
-                <div className="tooltip">
-                  <PlayerCircle
-                    number={playerNumber}
-                    isPresent={isPresent}
-                    onClick={() => onTogglePresence(playerNumber)}
-                  />
-                  {Array.isArray(presentPlayers) && foundPlayer && foundPlayer.bonus > 0 && 
-                    <span className="tooltip-text">Bonus: {foundPlayer.bonus}</span>}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+			const bgColor = getPlayerColor(isPresent, inTriplette);
+
+			return (
+			 <div key={playerNumber} className={`rounded-full ${CircleSize} ${bgColor}`}>
+				<div className="tooltip">
+				  {/* Ajoutez la tooltip-wrapper autour du bouton */}
+				  <div className="tooltip-wrapper">
+					<button
+					  className="w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 transform hover:scale-105 shadow-lg"
+					  onClick={() => onTogglePresence(playerNumber)}
+					>
+					  <span className="text-xl font-bold text-cyan-200">{playerNumber}</span>
+					</button>
+
+					{/* Affichage de la tooltip */}
+					{Array.isArray(presentPlayers) && foundPlayer && foundPlayer.bonus > 0 && (
+					  <div className="tooltip-content">
+						<span>Bonus: {foundPlayer.bonus}</span>
+						<span>Compteur: {foundPlayer.drawCount}</span>
+					  </div>
+					)}
+				  </div>
+				</div>
+			  </div>
+			);
+		  })}
+		</div>;
+
 
         <div className="mt-6 flex justify-end items-center">
           <div className="flex gap-2">
