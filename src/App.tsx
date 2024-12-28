@@ -1,6 +1,5 @@
-import React from 'react';
-import { useState } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import HomePage from './components/HomePage';
 import PresenceList from './components/PresenceList';
 import DrawPage from './components/DrawPage';
@@ -9,8 +8,9 @@ import { Match, Player } from './types/match.types';
 import { TeamDrawService,updatePlayerBonus } from './services/team-draw.service';
 
 function App() {
+  const navigate = useNavigate();
   const [playerCount, setPlayerCount] = useState('');
-  const [matchesState, setMatchesState] = useState<Match[]>([]);
+  //const [matchesState, setMatchesState] = useState<Match[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
   const [presentPlayers, setPresentPlayers] = useState<Player[]>([]);
   const [triplettePlayerIds, setTriplettePlayerIds] = useState<number[]>([]);
@@ -43,6 +43,7 @@ function App() {
       player.id === playerId ? { ...player, present: !player.present, bonus: player.present ? 0 : player.bonus } : player
     ));
   };
+
 
     const handleMatchesUpdate = (drawResult: { matches: Match[], triplettePlayerIds: number[] }) => {
         setMatches(drawResult.matches);
@@ -196,7 +197,7 @@ function App() {
         <Route 
           path="/" 
           element={
-            <HomePage 
+            <HomePage 											   
               playerCount={playerCount}
               onPlayerCountChange={handlePlayerCountChange}
               onReset={handleReset}

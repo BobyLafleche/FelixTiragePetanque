@@ -1,14 +1,14 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaUsers } from 'react-icons/fa';
-import { Player,Match } from '../types/match.types';
+import { Player, Match } from '../types/match.types';
 
 interface HomePageProps {
   playerCount: string;
   onPlayerCountChange: (count: string) => void;
   onReset: () => void;
   presentPlayers: Player[];
-  onMatchesUpdate: (drawResult: { matches: Match[]; triplettePlayerIds: number[]; }) => void;
+  onMatchesUpdate: (drawResult: { matches: Match[]; triplettePlayerIds: number[]; }) => void;  
 }
 
 const HomePage: React.FC<HomePageProps> = ({
@@ -59,7 +59,7 @@ const HomePage: React.FC<HomePageProps> = ({
             </div>
           </div>
 
-          {isValidCount && (
+          {(isValidCount) && (
             <button
               type="submit"
               className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white py-3 rounded-md font-semibold hover:bg-blue-700 transition-colors"

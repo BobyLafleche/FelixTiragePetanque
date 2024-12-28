@@ -1,0 +1,34 @@
+La fonction generateMatches génère des matchs pour un groupe de joueurs, en les séparant en différentes équipes et en ajustant la composition des matchs en fonction du nombre total de joueurs et de leurs bonus. Voici une explication simple du fonctionnement de cette fonction :
+
+1. Vérification du nombre de joueurs :
+Si le nombre de joueurs est inférieur à 4 ou supérieur à 99, la fonction retourne un message d'erreur indiquant que le nombre de joueurs doit être entre 4 et 99. Aucune autre logique de génération de matchs n'est effectuée dans ce cas.
+2. Séparation des joueurs en groupes :
+La fonction divise les joueurs en 4 groupes en fonction de leur bonus (bonus).
+Groupe 1 : joueurs ayant un bonus de 3 ou plus.
+Groupe 2 : joueurs ayant un bonus de 2.
+Groupe 3 : joueurs ayant un bonus de 1.
+Groupe 4 : joueurs n'ayant aucun bonus (bonus === 0).
+3. Mélange des joueurs :
+Chaque groupe est mélangé de manière aléatoire avec la méthode shuffleArray, ce qui permet de répartir les joueurs de façon imprévisible.
+4. Création des matchs :
+Ensuite, en fonction du nombre total de joueurs (playerCount), la fonction crée des matchs en divisant les joueurs restants dans des équipes de 2 ou 3. Cela dépend du modulo (reste de la division du nombre de joueurs par 4). La logique est la suivante :
+Modulo 0 : Si le nombre de joueurs est un multiple de 4, seuls des matchs en doublettes (2 contre 2) sont créés.
+Modulo 1 : Si le reste est 1, une équipe de 3 joueurs est ajoutée à la fin pour faire un match en 2 contre 3.
+Modulo 2 : Si le reste est 2, la dernière ligne est un match entre 2 équipes de 3 joueurs.
+Modulo 3 : Si le reste est 3, la fonction crée des matchs en doublettes et une équipe de 3 joueurs dans le dernier match, suivi d'un autre match avec une équipe de 3 contre une équipe de 2.
+5. Retour des résultats :
+La fonction retourne un objet contenant deux éléments :
+matches : Une liste de matchs, chaque match comprenant deux équipes de joueurs.
+triplettePlayerIds : Une liste des identifiants des joueurs qui font partie des équipes de 3 dans les matchs en 2v3 ou 3v3.
+6. Méthodes auxiliaires :
+createMatch : Une fonction interne qui prend deux équipes et génère une représentation textuelle du match (qui joue contre qui).
+shuffleArray : Une fonction pour mélanger les joueurs de manière aléatoire à l'aide de l'algorithme de Fisher-Yates.
+Exemple de ce qui se passe :
+Si vous avez 10 joueurs, la fonction :
+
+Divise les joueurs en 4 groupes (bonus 3, 2, 1, et 0).
+Mélange chaque groupe.
+Crée des matchs en utilisant les règles ci-dessus.
+Le reste du nombre de joueurs (10 % 4 = 2) signifie que le dernier match sera un match entre 2 équipes de 3 joueurs (3v3).
+Conclusion :
+Cette fonction permet de créer une répartition dynamique et aléatoire des joueurs en fonction de leur bonus, tout en ajustant la composition des équipes selon le nombre total de joueurs. Elle est conçue pour être flexible en termes de nombre de joueurs et de formation des équipes, en prenant en compte les différents bonus des joueurs.

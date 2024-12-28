@@ -1,7 +1,8 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaHome, FaDice, FaUsers } from 'react-icons/fa';
 import PlayerCircle from './PlayerCircle';
+import ConfirmationModal from './ConfirmationModal';
 import { Player ,Match} from '../types/match.types';
 
 interface PresenceListProps {
@@ -35,7 +36,12 @@ const PresenceList: React.FC<PresenceListProps> = ({
 }) => {
   const navigate = useNavigate();
   const count = parseInt(playerCount);
+  const [isModalOpen, setModalOpen] = React.useState(false);
 
+  useEffect(() => {
+    console.log('Matches in PresenceList:', matches);
+  }, []);
+	isMatchesEmpty = matches.length == 0;
   if (!playerCount || isNaN(count)) {
     return (
       <main className="container mx-auto px-4 py-6 max-w-lg">
@@ -53,6 +59,21 @@ const PresenceList: React.FC<PresenceListProps> = ({
     );
   }
 	
+  const handleLinkClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+	navigate('/'); // Navigate to home if there are no matches
+    //if (matches.length > 0) {
+    //    setModalOpen(true);
+    //} else {
+    //    navigate('/'); // Navigate to home if there are no matches
+    //}
+  };
+
+  const handleConfirm = () => {
+    setModalOpen(false);
+    navigate('/');
+  };
+
   return (
     <main className="container mx-auto px-4 py-6 max-w-lg">
       <div className="bg-white rounded-lg shadow-md p-6">
@@ -140,7 +161,7 @@ const PresenceList: React.FC<PresenceListProps> = ({
           </div>
         </div>
         <div className="mt-4 flex justify-start items-center gap-4">
-          <a href="/" className="nav-link flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors" >
+          <a href="/" className="nav-link flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors" onClick={handleLinkClick}>
             <FaHome />
             <span>Accueil</span>
           </a>
@@ -154,6 +175,13 @@ const PresenceList: React.FC<PresenceListProps> = ({
           </div>
         </div>
       </div>
+      <ConfirmationModal
+        isOpen={isModalOpen}
+        onClose={() => setModalOpen(false)}
+        onConfirm={handleConfirm}
+        ligne1="Cette action va effacer les équipes en cours."
+		ligne2="Êtes-vous sûr de vouloir continuer ?"
+      />
     </main>
   );
 };
