@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaHome, FaDice, FaUsers } from 'react-icons/fa';
 import PlayerCircle from './PlayerCircle';
@@ -38,9 +38,6 @@ const PresenceList: React.FC<PresenceListProps> = ({
   const count = parseInt(playerCount);
   const [isModalOpen, setModalOpen] = React.useState(false);
 
-  useEffect(() => {
-    console.log('Matches in PresenceList:', matches);
-  }, []);
 	isMatchesEmpty = matches.length == 0;
   if (!playerCount || isNaN(count)) {
     return (
@@ -145,7 +142,7 @@ const PresenceList: React.FC<PresenceListProps> = ({
 			  </div>
 			);
 		  })}
-		</div>;
+		</div>
 
 
         <div className="mt-6 flex justify-end items-center">

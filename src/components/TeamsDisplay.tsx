@@ -21,7 +21,7 @@ const TeamsDisplay: React.FC<TeamsDisplayProps> = ({ matches, onBack }) => {
           <h2 className="text-lg font-semibold">Équipes formées</h2>
           <button 
             onClick={() => navigate('/presence')}
-            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md font-semibold"
+            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-3 rounded-md font-semibold hover:bg-blue-700 transition-colors"
           >
             <FaUsers />
             <span>PRÉSENCE</span>

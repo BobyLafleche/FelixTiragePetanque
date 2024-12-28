@@ -6,6 +6,8 @@ import DrawPage from './components/DrawPage';
 import TeamsDisplay from './components/TeamsDisplay';
 import { Match, Player } from './types/match.types';
 import { TeamDrawService,updatePlayerBonus } from './services/team-draw.service';
+import { LastMatchesProvider } from './contexts/LastMatchesContext'; // Ensure the path is correct
+
 
 function App() {
   const navigate = useNavigate();
@@ -16,6 +18,7 @@ function App() {
   const [triplettePlayerIds, setTriplettePlayerIds] = useState<number[]>([]);
   const [players, setPlayers] = useState<Map<number, Player>>(new Map());
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [lastMatches, setLastMatches] = useState([]);
 
   const teamDrawService = new TeamDrawService();
 
@@ -36,6 +39,7 @@ function App() {
     setMatches([]);
 	setTriplettePlayerIds([]);
     setPlayers(new Map());
+    setLastMatches([]);
   };
 
   const handleTogglePresence = (playerId: number) => {
@@ -112,147 +116,149 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <header className="bg-blue-600 text-white p-4 shadow-md flex justify-between items-center">
-        <h1 className="text-xl font-bold text-center">Tirage au Sort</h1>
-<button id="settingsBtn" className="ml-4 bg-white text-blue-600 p-0 rounded-full w-12 h-12 flex items-center justify-center" onClick={openModal}>
+    <LastMatchesProvider>
+      <div className="min-h-screen bg-gray-100">
+        <header className="bg-blue-600 text-white p-4 shadow-md flex justify-between items-center">
+          <h1 className="text-xl font-bold text-center">Tirage au Sort</h1>
+          <button id="settingsBtn" className="ml-4 bg-white text-blue-600 p-0 rounded-full w-12 h-12 flex items-center justify-center" onClick={openModal}>
 
-	<svg viewBox="0 0 24 24" preserveAspectRatio="xMidYMid meet">
+            <svg viewBox="0 0 24 24" preserveAspectRatio="xMidYMid meet">
 
-        <path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.03-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"></path>
-    </svg>
-</button>
-      </header>
+              <path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.03-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"></path>
+            </svg>
+          </button>
+        </header>
 
-      {isModalOpen && (
-        <div className="modal">
-          <div className="modal-content">
-            <h3 className="text-center text-white bg-blue-600 p-2 rounded-md">Paramètres</h3>
-            <div className="flex items-center mb-4 mt-4">
-              <label htmlFor="duration" className="mr-2">Durée:</label>
-              <input 
-                type="number" 
-                id="duration" 
-                name="duration" 
-                className="border rounded p-1 w-24 ml-2" 
-              />
-            </div>
-            <label>
-              <input type="checkbox" id="diversification" /> Diversification
-            </label>
-            <div className="flex justify-between mt-4">
-              <button onClick={closeModal} className="cancel-button px-4 py-2 rounded-md">
-                Annuler
-              </button>
-              <button onClick={saveParameters} className="save-button bg-green-600 text-white px-4 py-2 rounded-md">
-                Sauvegarder
-              </button>
+        {isModalOpen && (
+          <div className="modal">
+            <div className="modal-content">
+              <h3 className="text-center text-white bg-blue-600 p-2 rounded-md">Paramètres</h3>
+              <div className="flex items-center mb-4 mt-4">
+                <label htmlFor="duration" className="mr-2">Durée:</label>
+                <input 
+                  type="number" 
+                  id="duration" 
+                  name="duration" 
+                  className="border rounded p-1 w-24 ml-2" 
+                />
+              </div>
+              <label>
+                <input type="checkbox" id="diversification" /> Diversification
+              </label>
+              <div className="flex justify-between mt-4">
+                <button onClick={closeModal} className="cancel-button px-4 py-2 rounded-md">
+                  Annuler
+                </button>
+                <button onClick={saveParameters} className="save-button bg-green-600 text-white px-4 py-2 rounded-md">
+                  Sauvegarder
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      <style>
-        {`
-          .modal {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
-          }
-          .modal-content {
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-            width: 90%;
-            max-width: 500px;
-          }
-          .modal-content h2 {
-            margin-bottom: 15px;
-          }
-          .modal-content label {
-            display: block;
-            margin: 10px 0;
-          }
-          .modal-content button {
-            padding: 10px 15px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-          }
+        <style>
+          {`
+            .modal {
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              position: fixed;
+              top: 0;
+              left: 0;
+              width: 100%;
+              height: 100%;
+              background-color: rgba(0, 0, 0, 0.8);
+            }
+            .modal-content {
+              background-color: white;
+              padding: 20px;
+              border-radius: 8px;
+              box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+              width: 90%;
+              max-width: 500px;
+            }
+            .modal-content h2 {
+              margin-bottom: 15px;
+            }
+            .modal-content label {
+              display: block;
+              margin: 10px 0;
+            }
+            .modal-content button {
+              padding: 10px 15px;
+              border: none;
+              border-radius: 5px;
+              cursor: pointer;
+            }
 
-          .modal-content button:hover {
-            opacity: 0.9;
-          }
-        `}
-      </style>
+            .modal-content button:hover {
+              opacity: 0.9;
+            }
+          `}
+        </style>
 
-      <Routes>
-        <Route 
-          path="/" 
-          element={
-            <HomePage 											   
-              playerCount={playerCount}
-              onPlayerCountChange={handlePlayerCountChange}
-              onReset={handleReset}
-              presentPlayers={presentPlayers}
-              onMatchesUpdate={handleMatchesUpdate}              
-            />
-          } 
-        />
-        <Route 
-          path="/presence" 
-          element={
-            parseInt(playerCount) >= 4 ? (
-              <PresenceList 
+        <Routes>
+          <Route 
+            path="/" 
+            element={
+              <HomePage 											   
                 playerCount={playerCount}
+                onPlayerCountChange={handlePlayerCountChange}
+                onReset={handleReset}
                 presentPlayers={presentPlayers}
-                onTogglePresence={handleTogglePresence}
-                players={players}												   
-                triplettePlayerIds={triplettePlayerIds}
-                matches={matches}
-                isMatchesEmpty={isMatchesEmpty()}
+                onMatchesUpdate={handleMatchesUpdate}              
               />
-            ) : (
-              <Navigate to="/" replace />
-            )
-          } 
-        />
-        <Route 
-          path="/draw" 
-          element={
-            parseInt(playerCount) >= 4 ? (
-              <DrawPage 
-                playerCount={playerCount}
-                presentPlayers={presentPlayers.filter(p => p.present)}
-                onMatchesUpdate={handleMatchesUpdate}
-              />
-            ) : (
-              <Navigate to="/" replace />
-            )
-          } 
-        />
-        <Route 
-          path="/teams" 
-          element={
-            matches.length > 0 ? (
-              <TeamsDisplay 
-                matches={matches}
-                onBack={() => setMatches([])}
-              />
-            ) : (
-              <Navigate to="/draw" replace />
-            )
-          } 
-        />
-      </Routes>
-    </div>
+            } 
+          />
+          <Route 
+            path="/presence" 
+            element={
+              parseInt(playerCount) >= 4 ? (
+                <PresenceList 
+                  playerCount={playerCount}
+                  presentPlayers={presentPlayers}
+                  onTogglePresence={handleTogglePresence}
+                  players={players}												   
+                  triplettePlayerIds={triplettePlayerIds}
+                  matches={matches}
+                  isMatchesEmpty={isMatchesEmpty()}
+                />
+              ) : (
+                <Navigate to="/" replace />
+              )
+            } 
+          />
+          <Route 
+            path="/draw" 
+            element={
+              parseInt(playerCount) >= 4 ? (
+                <DrawPage 
+                  playerCount={playerCount}
+                  presentPlayers={presentPlayers.filter(p => p.present)}
+                  onMatchesUpdate={handleMatchesUpdate}
+                />
+              ) : (
+                <Navigate to="/" replace />
+              )
+            } 
+          />
+          <Route 
+            path="/teams" 
+            element={
+              matches.length > 0 ? (
+                <TeamsDisplay 
+                  matches={matches}
+                  onBack={() => setMatches([])}
+                />
+              ) : (
+                <Navigate to="/draw" replace />
+              )
+            } 
+          />
+        </Routes>
+      </div>
+    </LastMatchesProvider>
   );
 }
 

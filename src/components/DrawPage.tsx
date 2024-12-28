@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaUsers, FaDice } from 'react-icons/fa';
-import {TeamDrawService} from '../services/team-draw.service';
-import { Player, DrawResult } from '../types/match.types';
+import { TeamDrawService } from '../services/team-draw.service';
+import { Player, DrawResult, MatchPlayer } from '../types/match.types';
+import { useLastMatches } from '../contexts/LastMatchesContext';
 
 interface DrawPageProps {
   playerCount: string;
@@ -11,22 +12,22 @@ interface DrawPageProps {
 }
 
 const DrawPage: React.FC<DrawPageProps> = ({ playerCount, presentPlayers, onMatchesUpdate }) => {
-  const [isDrawn, setIsDrawn] = useState(false);
-  const teamDrawService = new TeamDrawService();
+  const { lastMatches, setLastMatches } = useLastMatches(); // Access the context
   const navigate = useNavigate();
-
-  useEffect(() => {
-    console.log('Initial presentPlayers:', presentPlayers);
-  }, []);
-
-  useEffect(() => {
-    console.log('Updated presentPlayers:', presentPlayers);
-  }, [presentPlayers]);
-
+  
   const handleDraw = () => {
-    console.log('presentPlayers before draw:', presentPlayers);
+    let last = lastMatches; // Access the lastMatches from context
     const drawResult = TeamDrawService.generateMatches(presentPlayers.length, presentPlayers);
     onMatchesUpdate(drawResult);
+    
+    // Extract team1 and team2 from drawResult
+    let newLastMatches = drawResult.matches.map(match => [
+        ...match.team1.map(player => player.id),
+        ...match.team2.map(player => player.id)
+    ]);
+
+    setLastMatches(newLastMatches); // Update state with current LastMatches
+    
     navigate('/teams');
   };
 
@@ -38,7 +39,7 @@ const DrawPage: React.FC<DrawPageProps> = ({ playerCount, presentPlayers, onMatc
           <div className="flex items-center">
             <button 
               onClick={() => navigate('/presence')}
-              className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md font-semibold"
+              className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-md font-semibold hover:bg-blue-700 transition-colors"
             >
               <FaUsers />
               <span>PRÉSENCE</span>

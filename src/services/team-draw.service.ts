@@ -15,6 +15,8 @@ export class TeamDrawService {
           {
             matchNumber: 1,
             matchText: "Le nombre de joueurs doit être entre 4 et 99",
+            team1: [],
+            team2: [] ,
           },
         ],
         triplettePlayerIds: [],
@@ -26,56 +28,32 @@ export class TeamDrawService {
     let playersWithBonus: Player[] = [];
     let playersWithNoBonus: Player[] = [];
 
-    if (Diversification) {
-      // Si la diversification est activée, on crée deux groupes
-      playersWithBonus = presentPlayers.filter((player) => player.bonus > 0);
-      playersWithNoBonus = presentPlayers.filter(
-        (player) => player.bonus === 0
-      );
-    } else {
-      // Séparer les joueurs en fonction de leur bonus pour chaque groupe
-      const playersWithBonus3 = presentPlayers.filter(
-        (player) => player.bonus >= 3
-      );
-      const playersWithBonus2 = presentPlayers.filter(
-        (player) => player.bonus === 2
-      );
-      const playersWithBonus1 = presentPlayers.filter(
-        (player) => player.bonus === 1
-      );
-      const playersWithBonus0 = presentPlayers.filter(
-        (player) => player.bonus === 0
-      );
+    playersWithBonus = presentPlayers.filter((player) => player.bonus > 0);
+    playersWithNoBonus = presentPlayers.filter((player) => player.bonus === 0);	
+    this.shuffleArray(playersWithBonus);
+    this.shuffleArray(playersWithNoBonus);
 
-      // Mélanger chaque groupe séparément
-      this.shuffleArray(playersWithBonus3);
-      this.shuffleArray(playersWithBonus2);
-      this.shuffleArray(playersWithBonus1);
-      this.shuffleArray(playersWithBonus0);
+    const modulo = playerCount % 4;
 
-      // Combiner tous les groupes mélangés
-      playersWithBonus = [
-        ...playersWithBonus3,
-        ...playersWithBonus2,
-        ...playersWithBonus1,
-        ...playersWithBonus0,
-      ];
-    }
+    // Extraire les derniers 3 joueurs de playersWithNoBonus en fonction du modulo
+    const lastPlayers = playersWithNoBonus.slice(-3 * modulo);
+
+    // Ajouter les premiers joueurs restants de playersWithNoBonus avec playersWithBonus dans playersDoublettes
+    const playersDoublettes = [...playersWithBonus, ...playersWithNoBonus.slice(0, -3 * modulo)];
+
+    this.shuffleArray(playersDoublettes);
 
     // Combinaison finale des joueurs en un seul tableau
-    const players = [...playersWithBonus, ...playersWithNoBonus];
-	
+    const players = [...playersDoublettes, ...lastPlayers];
 
     const matches: Match[] = [];
     const triplettePlayerIds: number[] = [];
-    const modulo = playerCount % 4;
 
     let matchNumber = 1;
     let remainingPlayers = [...players];
 
     console.log("modulo :", modulo);
     console.log("remainingPlayers :", remainingPlayers);
-
 
     // Structure pour suivre les associations des joueurs
     let lastMatchAssociations: Set<string> = new Set();
@@ -167,7 +145,7 @@ export class TeamDrawService {
         break;
     }
 
-	console.log("triplettePlayerIds :", triplettePlayerIds);
+    console.log("triplettePlayerIds :", triplettePlayerIds);
     return { matches, triplettePlayerIds };
   }
 
@@ -223,6 +201,8 @@ export class TeamDrawService {
         team1Text && team2Text
           ? `${team1Text} contre ${team2Text}`
           : "Match incomplet",
+      team1: team1,
+      team2: team2,
     };
   }
 
@@ -233,6 +213,20 @@ export class TeamDrawService {
     }
   }
 }
+
+let lastMatches = { team1: [], team2: [] };
+
+const handleDraw = () => {
+  console.log('presentPlayers before draw:', presentPlayers);
+  const drawResult = TeamDrawService.generateMatches(presentPlayers.length, presentPlayers);
+  onMatchesUpdate(drawResult);
+  
+  // Extract team1 and team2 from drawResult and store them in the global lastMatches
+  lastMatches.team1 = drawResult.matches.map(match => match.team1);
+  lastMatches.team2 = drawResult.matches.map(match => match.team2);
+
+  navigate('/teams');
+};
 
 function updatePlayerBonus(
   players: Map<number, Player>,
