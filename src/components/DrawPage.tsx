@@ -34,20 +34,8 @@ const DrawPage: React.FC<DrawPageProps> = ({ playerCount, presentPlayers, onMatc
   return (
     <main className="container mx-auto px-4 py-6 max-w-lg">
       <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold">Tirage au sort</h2>
-          <div className="flex items-center">
-            <button 
-              onClick={() => navigate('/presence')}
-              className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-md font-semibold hover:bg-blue-700 transition-colors"
-            >
-              <FaUsers />
-              <span>PRÉSENCE</span>
-            </button>
-            <button id="settingsBtn" className="ml-4">
-              <i className="fas fa-cog"></i>
-            </button>
-          </div>
+        <div className="flex justify-center items-center mb-4">
+          <h1 className="text-xl font-bold text-center">Tirage au Sort</h1>
         </div>
         <div className="text-center mb-4">
           <p>Joueurs présents: {presentPlayers.length} / {playerCount}</p>
@@ -60,6 +48,18 @@ const DrawPage: React.FC<DrawPageProps> = ({ playerCount, presentPlayers, onMatc
           >
             <FaDice className="text-xl" />
             <span>TIRAGE</span>
+          </button>
+        </div>
+        <div className="flex justify-center items-center">
+          <button 
+            onClick={() => navigate('/presence')}
+            className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-md font-semibold hover:bg-blue-700 transition-colors"
+          >
+            <FaUsers />
+            <span>PRÉSENCE</span>
+          </button>
+          <button id="settingsBtn" className="ml-4">
+            <i className="fas fa-cog"></i>
           </button>
         </div>
       </div>
