@@ -135,16 +135,16 @@ function App() {
             <h3 className="text-center text-white bg-blue-600 p-2 rounded-md">Paramètres</h3>
 			
 			
-<div className="grid grid-cols-3 items-center mb-4 grid-cols-[20%,15%,auto]">
+<div className="grid grid-cols-3 items-center mb-4 grid-cols-[10%,25%,auto]">
   <div className="flex items-center col-span-1">
     <label htmlFor="duration" className="mr-2">Durée:</label>
-    <input type="number" id="duration" name="duration" className="border rounded p-1 w-16 ml-2" />
+    <input type="number" id="duration" name="duration" className="border rounded p-1 w-10 ml-2" />
   </div>
   <p className="text-sm text-gray-500 col-start-3">
     Prolonge la participation à une triplette d'un certain nombre de tirages
   </p>
 </div>
-<div className="grid grid-cols-3 items-center mb-4 grid-cols-[20%,15%,auto]">
+<div className="grid grid-cols-3 items-center mb-4 grid-cols-[10%,25%,auto]">
   <div className="flex items-center">
     <input type="checkbox" id="diversification" className="mr-2" />
     <label htmlFor="diversification" className="cursor-pointer">Mélange</label>
