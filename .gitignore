@@ -42,3 +42,6 @@ desktop.ini
 
 # Vite
 .vite/
+
+# Fichiers contenant "Copie" dans le nom
+*Copie*

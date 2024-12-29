@@ -3,7 +3,8 @@ import { Match, Player, DrawResult } from "../types/match.types";
 export class TeamDrawService {
   public static generateMatches(
     playerCount: number,
-    presentPlayers: Player[]
+    presentPlayers: Player[],
+    lastMatches: any[]
   ): DrawResult {
     const Diversification = JSON.parse(
       localStorage.getItem("diversification") || "false"
@@ -63,11 +64,13 @@ export class TeamDrawService {
         while (remainingPlayers.length >= 4) {
           const team1 = this.createTeam(
             remainingPlayers,
-            lastMatchAssociations
+            Diversification,
+            lastMatches
           );
           const team2 = this.createTeam(
             remainingPlayers,
-            lastMatchAssociations
+            Diversification,
+            lastMatches
           );
           matches.push(this.createMatch(matchNumber++, team1, team2));
         }
@@ -77,11 +80,13 @@ export class TeamDrawService {
         while (remainingPlayers.length > 5) {
           const team1 = this.createTeam(
             remainingPlayers,
-            lastMatchAssociations
+            Diversification,
+            lastMatches
           );
           const team2 = this.createTeam(
             remainingPlayers,
-            lastMatchAssociations
+            Diversification,
+            lastMatches
           );
           matches.push(this.createMatch(matchNumber++, team1, team2));
         }
@@ -97,11 +102,13 @@ export class TeamDrawService {
         while (remainingPlayers.length > 6) {
           const team1 = this.createTeam(
             remainingPlayers,
-            lastMatchAssociations
+            Diversification,
+            lastMatches
           );
           const team2 = this.createTeam(
             remainingPlayers,
-            lastMatchAssociations
+            Diversification,
+            lastMatches
           );
           matches.push(this.createMatch(matchNumber++, team1, team2));
         }
@@ -118,11 +125,13 @@ export class TeamDrawService {
         while (remainingPlayers.length > 11) {
           const team1 = this.createTeam(
             remainingPlayers,
-            lastMatchAssociations
+            Diversification,
+            lastMatches
           );
           const team2 = this.createTeam(
             remainingPlayers,
-            lastMatchAssociations
+            Diversification,
+            lastMatches
           );
           matches.push(this.createMatch(matchNumber++, team1, team2));
         }
@@ -149,39 +158,58 @@ export class TeamDrawService {
     return { matches, triplettePlayerIds };
   }
 
-  private static createTeam(
-    remainingPlayers: Player[],
-    lastMatchAssociations: Set<string>
-  ): Player[] {
-    let team: Player[] = [];
-    let attempt = 0;
-    // Essayer de créer une équipe qui n'a pas joué ensemble dans le dernier match
-    while (team.length < 2 && attempt < 10) {
-      // Limite d'essais pour éviter boucle infinie
-      const player = remainingPlayers.splice(0, 1)[0];
-      let canAdd = true;
+private static createTeam(
+  remainingPlayers: Player[],
+  diversification: boolean,
+  lastMatches: any[]
+): Player[] {
+  let team: Player[] = [];
+  let attempt = 0;
 
-      // Vérifier si ce joueur a joué avec un autre joueur dans cette équipe dans le dernier match
-      team.forEach((existingPlayer) => {
-        if (lastMatchAssociations.has(`${existingPlayer.id},${player.id}`)) {
-          canAdd = false; // Si oui, on ne l'ajoute pas
-        }
-      });
+  // Si la diversification n'est pas activée ou si les conditions minimales ne sont pas respectées
+  if (!diversification || remainingPlayers.length < 2 || lastMatches.length === 0) {
+    return remainingPlayers.splice(0, 2); // Retire et retourne les deux premiers joueurs
+  }
 
-      if (canAdd) {
-        team.push(player);
-      }
+  // Créer une liste des IDs des joueurs restants
+  let localRemainingPlayers = [...remainingPlayers.map(player => player.id)];
 
+  while (team.length < 2 && attempt < 10) {
+    const candidateId = localRemainingPlayers.shift(); // Prend le premier joueur disponible
+    if (!candidateId) break; // Plus de joueurs disponibles
+
+    const candidate = remainingPlayers.find(player => player.id === candidateId);
+    if (!candidate) continue; // Ignore si le joueur n'est pas trouvé
+
+    // Vérifie si le joueur peut être ajouté à l'équipe
+    const isCompatible = lastMatches.every(match =>
+      !match.includes(candidateId) || // Le joueur n'était pas dans ce match
+      team.every(player => !match.includes(player.id)) // Pas de conflit avec l'équipe existante
+    );
+
+    if (isCompatible) {
+      team.push(candidate);
+    }
+
+    // Réinitialise les joueurs si aucun compatible n'a été trouvé
+    if (team.length < 2 && localRemainingPlayers.length === 0) {
+      localRemainingPlayers = [...remainingPlayers.map(player => player.id)];
+      team = [];
       attempt++;
     }
-
-    // Ajouter cette association aux "derniers matchs" si l'équipe est validée
-    if (team.length === 2) {
-      lastMatchAssociations.add(`${team[0].id},${team[1].id}`);
-    }
-
-    return team;
   }
+
+  // Supprime les joueurs sélectionnés de remainingPlayers
+  team.forEach(selectedPlayer => {
+    const index = remainingPlayers.findIndex(player => player.id === selectedPlayer.id);
+    if (index !== -1) {
+      remainingPlayers.splice(index, 1); // Retire le joueur du tableau des joueurs restants
+    }
+  });
+
+  return team;
+}
+
 
   private static createMatch(
     matchNumber: number,
@@ -216,17 +244,17 @@ export class TeamDrawService {
 
 let lastMatches = { team1: [], team2: [] };
 
-const handleDraw = () => {
-  console.log('presentPlayers before draw:', presentPlayers);
-  const drawResult = TeamDrawService.generateMatches(presentPlayers.length, presentPlayers);
-  onMatchesUpdate(drawResult);
-  
-  // Extract team1 and team2 from drawResult and store them in the global lastMatches
-  lastMatches.team1 = drawResult.matches.map(match => match.team1);
-  lastMatches.team2 = drawResult.matches.map(match => match.team2);
-
-  navigate('/teams');
-};
+//const handleDraw = () => {
+//  console.log('presentPlayers before draw:', presentPlayers);
+//  const drawResult = TeamDrawService.generateMatches(presentPlayers.length, presentPlayers, lastMatches);
+//  onMatchesUpdate(drawResult);
+//  
+//  // Extract team1 and team2 from drawResult and store them in the global lastMatches
+//  lastMatches.team1 = drawResult.matches.map(match => match.team1);
+//  lastMatches.team2 = drawResult.matches.map(match => match.team2);
+//
+//  navigate('/teams');
+//};
 
 function updatePlayerBonus(
   players: Map<number, Player>,

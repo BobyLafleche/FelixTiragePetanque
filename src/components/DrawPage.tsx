@@ -17,7 +17,7 @@ const DrawPage: React.FC<DrawPageProps> = ({ playerCount, presentPlayers, onMatc
   
   const handleDraw = () => {
     let last = lastMatches; // Access the lastMatches from context
-    const drawResult = TeamDrawService.generateMatches(presentPlayers.length, presentPlayers);
+    const drawResult = TeamDrawService.generateMatches(presentPlayers.length, presentPlayers,lastMatches);
     onMatchesUpdate(drawResult);
     
     // Extract team1 and team2 from drawResult
@@ -49,8 +49,6 @@ const DrawPage: React.FC<DrawPageProps> = ({ playerCount, presentPlayers, onMatc
             <FaDice className="text-xl" />
             <span>TIRAGE</span>
           </button>
-        </div>
-        <div className="flex justify-center items-center">
           <button 
             onClick={() => navigate('/presence')}
             className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-md font-semibold hover:bg-blue-700 transition-colors"
@@ -58,6 +56,8 @@ const DrawPage: React.FC<DrawPageProps> = ({ playerCount, presentPlayers, onMatc
             <FaUsers />
             <span>PRÉSENCE</span>
           </button>
+        </div>
+        <div className="flex justify-center items-center">
           <button id="settingsBtn" className="ml-4">
             <i className="fas fa-cog"></i>
           </button>

@@ -130,21 +130,31 @@ function App() {
       </header>
 
       {isModalOpen && (
-        <div className="modal">
+        <div className="modal" style={{zIndex: 1000}}>
           <div className="modal-content">
             <h3 className="text-center text-white bg-blue-600 p-2 rounded-md">Paramètres</h3>
-            <div className="flex items-center mb-4 mt-4">
-              <label htmlFor="duration" className="mr-2">Durée:</label>
-              <input 
-                type="number" 
-                id="duration" 
-                name="duration" 
-                className="border rounded p-1 w-24 ml-2" 
-              />
-            </div>
-            <label>
-              <input type="checkbox" id="diversification" /> Diversification
-            </label>
+			
+			
+<div className="grid grid-cols-3 items-center mb-4 grid-cols-[20%,15%,auto]">
+  <div className="flex items-center col-span-1">
+    <label htmlFor="duration" className="mr-2">Durée:</label>
+    <input type="number" id="duration" name="duration" className="border rounded p-1 w-16 ml-2" />
+  </div>
+  <p className="text-sm text-gray-500 col-start-3">
+    Prolonge la participation à une triplette d'un certain nombre de tirages
+  </p>
+</div>
+<div className="grid grid-cols-3 items-center mb-4 grid-cols-[20%,15%,auto]">
+  <div className="flex items-center">
+    <input type="checkbox" id="diversification" className="mr-2" />
+    <label htmlFor="diversification" className="cursor-pointer">Mélange</label>
+  </div>
+  <p className="text-sm text-gray-500 col-start-3">
+    Essaye de ne pas retomber sur les mêmes coéquipiers
+  </p>
+</div>
+			
+			
             <div className="flex justify-between mt-4">
               <button onClick={closeModal} className="cancel-button px-4 py-2 rounded-md">
                 Annuler
@@ -168,7 +178,8 @@ function App() {
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
+            background-color: rgba(255, 255, 255, 1); /* Opaque white background */
+            z-index: 1000; /* Ensure it is above other elements */
           }
           .modal-content {
             background-color: white;
