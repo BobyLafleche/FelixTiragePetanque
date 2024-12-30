@@ -298,11 +298,12 @@ export class TeamDrawService {
     team1: Player[],
     team2: Player[]
   ): Match {
-    const formatTeam = (team: Player[]) =>
-      team
-        .map((p) => p.id)
-        .join(", ")
-        .trim();
+	const formatTeam = (team: Player[]) =>
+	  team
+		.map((p) => p.id) // Extraire les IDs
+		.sort((a, b) => a - b) // Trier les IDs en tant que nombres
+		.join(", ") // Joindre les IDs avec des virgules
+		.trim(); // Supprimer les espaces inutiles
     const team1Text = formatTeam(team1);
     const team2Text = formatTeam(team2);
     return {
