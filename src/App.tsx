@@ -19,8 +19,16 @@ function App() {
   const [players, setPlayers] = useState<Map<number, Player>>(new Map());
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [lastMatches, setLastMatches] = useState([]);
+  const [isLoggingEnabled, setIsLoggingEnabled] = useState(() => {
+    return JSON.parse(localStorage.getItem("loggingEnabled") || "false");
+  });
 
   const teamDrawService = new TeamDrawService();
+
+  useEffect(() => {
+    // Clear the temporary CSV data on startup
+    localStorage.removeItem("tempCSVData");
+  }, []);
 
   const handlePlayerCountChange = (count: string) => {
     setPlayerCount(count);
@@ -103,6 +111,29 @@ function App() {
 
   const closeModal = () => setIsModalOpen(false);
 
+  const handleLoggingToggle = (event) => {
+    const isChecked = event.target.checked;
+    setIsLoggingEnabled(isChecked);
+    localStorage.setItem("loggingEnabled", JSON.stringify(isChecked));
+  };
+
+  const handleDownload = () => {
+    const csvData = localStorage.getItem("tempCSVData"); // Retrieve the temporary CSV data
+    if (csvData) {
+      const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      
+      const a = document.createElement('a');
+      a.href = url;
+      a.setAttribute('download', 'matches.csv'); // Specify the file name
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    } else {
+      alert('No data available for download.');
+    }
+  };
+
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('/service-worker.js')
@@ -133,32 +164,48 @@ function App() {
         <div className="modal" style={{zIndex: 1000}}>
           <div className="modal-content">
             <h3 className="text-center text-white bg-blue-600 p-2 rounded-md">Paramètres</h3>
-			
-			
-<div className="grid grid-cols-3 items-center mb-4 grid-cols-[10%,25%,auto]">
-  <div className="flex items-center col-span-1">
-    <label htmlFor="duration" className="mr-2">Durée:</label>
-    <input type="number" id="duration" name="duration" className="border rounded p-1 w-10 ml-2" />
-  </div>
-  <p className="text-sm text-gray-500 col-start-3">
-    Prolonge la participation à une triplette d'un certain nombre de tirages
-  </p>
-</div>
-<div className="grid grid-cols-3 items-center mb-4 grid-cols-[10%,25%,auto]">
-  <div className="flex items-center">
-    <input type="checkbox" id="diversification" className="mr-2" />
-    <label htmlFor="diversification" className="cursor-pointer">Mélange</label>
-  </div>
-  <p className="text-sm text-gray-500 col-start-3">
-    Essaye de ne pas retomber sur les mêmes coéquipiers
-  </p>
-</div>
-			
-			
+			<div className="grid grid-cols-3 items-center mb-4 grid-cols-[10%,25%,auto]">
+			  <div className="flex items-center col-span-1">
+				<label htmlFor="duration" className="mr-2">Durée:</label>
+				<input type="number" id="duration" name="duration" className="border rounded p-1 w-10 ml-2" />
+			  </div>
+			  <p className="text-sm text-gray-500 col-start-3">
+				Maintient la participation à une triplette un certain nombre de tirages
+			  </p>
+			</div>
+			<div className="grid grid-cols-3 items-center mb-4 grid-cols-[10%,25%,auto]">
+			  <div className="flex items-center">
+				<input type="checkbox" id="diversification" className="mr-2" />
+				<label htmlFor="diversification" className="cursor-pointer">Mélange</label>
+			  </div>
+			  <p className="text-sm text-gray-500 col-start-3">
+				Essaye de ne pas retomber sur les mêmes coéquipiers
+			  </p>
+			</div>
+			<div className="grid grid-cols-3 items-center mb-4 grid-cols-[10%,25%,auto]">
+			  <div className="flex items-center">
+				<input 
+				  type="checkbox" 
+				  id="logging" 
+				  checked={isLoggingEnabled} 
+				  onChange={handleLoggingToggle} 
+				  className="mr-2" 
+				/>
+				<label htmlFor="logging" className="cursor-pointer">Logs</label>
+			  </div>
+			  <p className="text-sm text-gray-500 col-start-3">
+				Enregistre les tirages dans un fichier CSV
+			  </p>
+			</div>
             <div className="flex justify-between mt-4">
               <button onClick={closeModal} className="cancel-button px-4 py-2 rounded-md">
                 Annuler
               </button>
+              {isLoggingEnabled && (
+                <button onClick={handleDownload} className="download-button bg-blue-600 text-white px-4 py-2 rounded-md">
+                  Download
+                </button>
+              )}
               <button onClick={saveParameters} className="save-button bg-green-600 text-white px-4 py-2 rounded-md">
                 Sauvegarder
               </button>

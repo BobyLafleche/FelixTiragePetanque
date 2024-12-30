@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <Page xmlns="http://schemas.nativescript.org/tns.xsd" navigatingTo="navigatingTo" class="page">
-    <ActionBar title="Tirage au Sort" class="action-bar" />
+    <ActionBar title="Tirage au Sort5" class="action-bar" />
     
     <ScrollView>
         <StackLayout>

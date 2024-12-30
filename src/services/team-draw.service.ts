@@ -1,6 +1,75 @@
 import { Match, Player, DrawResult } from "../types/match.types";
 
 export class TeamDrawService {
+  // Function to convert data to CSV format
+  private static convertToCSV(data: any[]): string {
+    const csvRows = [];
+    const headers = Object.keys(data[0]);
+    csvRows.push(headers.join(',')); // Add headers
+
+    for (const row of data) {
+      csvRows.push(headers.map(fieldName => JSON.stringify(row[fieldName], (key, value) => value === null ? '' : value)).join(','));
+    }
+    
+    return csvRows.join('\n');
+  }
+
+  // Function to convert data to CSV format with semicolon as separator
+  private static convertToCSVWithSemicolon(data: any[]): string {
+    const csvRows = [];
+    const headers = Object.keys(data[0]);
+    csvRows.push(headers.join(';')); // Use semicolon as separator
+
+    for (const row of data) {
+      csvRows.push(headers.map(fieldName => JSON.stringify(row[fieldName], (key, value) => value === null ? '' : value)).join(';'));
+    }
+    
+    return csvRows.join('\n');
+  }
+
+  // Function to convert data to CSV format with tab as separator
+  private static convertToCSVWithTab(data: any[]): string {
+    const csvRows = [];
+
+    // Loop through each match and format the output
+    data.forEach(match => {
+      const matchNumber = match.matchNumber;
+      
+      // Get IDs for team 1
+      const team1Ids = match.team1.map(player => player.id);
+      
+      // Get IDs for team 2
+      const team2Ids = match.team2.map(player => player.id);
+      
+      // Format the row based on the length of team1Ids
+      let row;
+      if (team1Ids.length === 3) {
+        row = [matchNumber, ...team1Ids, ...team2Ids].join('\t');
+      } else {
+        row = [matchNumber, ...team1Ids, '', ...team2Ids].join('\t');
+      }
+      
+      // Add the formatted row to csvRows
+      csvRows.push(row);
+    });
+
+    return csvRows.join('\n');
+  }
+
+  // Function to download CSV file
+  private static downloadCSV(data: any[]): void {
+    const csvData = this.convertToCSV(data);
+    const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+  
+    const a = document.createElement('a');
+    a.href = url;
+    a.setAttribute('download', 'matches.csv'); // Specify the file name
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
+
   public static generateMatches(
     playerCount: number,
     presentPlayers: Player[],
@@ -154,62 +223,75 @@ export class TeamDrawService {
         break;
     }
 
-    console.log("triplettePlayerIds :", triplettePlayerIds);
+    // Check if logging is enabled before writing to CSV
+    const isLoggingEnabled = JSON.parse(localStorage.getItem("loggingEnabled") || "false");
+    if (isLoggingEnabled) {
+      const newCSVData = this.convertToCSVWithTab(matches); // Use the updated method
+
+      // Retrieve existing CSV data
+      const existingCSVData = localStorage.getItem("tempCSVData") || "";
+      
+      // Combine existing data with new data
+      const combinedCSVData = existingCSVData ? existingCSVData + '\n' + newCSVData : newCSVData;
+
+      // Store the combined CSV data in localStorage
+      localStorage.setItem("tempCSVData", combinedCSVData);
+    }
+
     return { matches, triplettePlayerIds };
   }
 
-private static createTeam(
-  remainingPlayers: Player[],
-  diversification: boolean,
-  lastMatches: any[]
-): Player[] {
-  let team: Player[] = [];
-  let attempt = 0;
+  private static createTeam(
+    remainingPlayers: Player[],
+    diversification: boolean,
+    lastMatches: any[]
+  ): Player[] {
+    let team: Player[] = [];
+    let attempt = 0;
 
-  // Si la diversification n'est pas activée ou si les conditions minimales ne sont pas respectées
-  if (!diversification || remainingPlayers.length < 2 || lastMatches.length === 0) {
-    return remainingPlayers.splice(0, 2); // Retire et retourne les deux premiers joueurs
+    // Si la diversification n'est pas activée ou si les conditions minimales ne sont pas respectées
+    if (!diversification || remainingPlayers.length < 2 || lastMatches.length === 0) {
+      return remainingPlayers.splice(0, 2); // Retire et retourne les deux premiers joueurs
+    }
+
+    // Créer une liste des IDs des joueurs restants
+    let localRemainingPlayers = [...remainingPlayers.map(player => player.id)];
+
+    while (team.length < 2 && attempt < 10) {
+      const candidateId = localRemainingPlayers.shift(); // Prend le premier joueur disponible
+      if (!candidateId) break; // Plus de joueurs disponibles
+
+      const candidate = remainingPlayers.find(player => player.id === candidateId);
+      if (!candidate) continue; // Ignore si le joueur n'est pas trouvé
+
+      // Vérifie si le joueur peut être ajouté à l'équipe
+      const isCompatible = lastMatches.every(match =>
+        !match.includes(candidateId) || // Le joueur n'était pas dans ce match
+        team.every(player => !match.includes(player.id)) // Pas de conflit avec l'équipe existante
+      );
+
+      if (isCompatible) {
+        team.push(candidate);
+      }
+
+      // Réinitialise les joueurs si aucun compatible n'a été trouvé
+      if (team.length < 2 && localRemainingPlayers.length === 0) {
+        localRemainingPlayers = [...remainingPlayers.map(player => player.id)];
+        team = [];
+        attempt++;
+      }
+    }
+
+    // Supprime les joueurs sélectionnés de remainingPlayers
+    team.forEach(selectedPlayer => {
+      const index = remainingPlayers.findIndex(player => player.id === selectedPlayer.id);
+      if (index !== -1) {
+        remainingPlayers.splice(index, 1); // Retire le joueur du tableau des joueurs restants
+      }
+    });
+
+    return team;
   }
-
-  // Créer une liste des IDs des joueurs restants
-  let localRemainingPlayers = [...remainingPlayers.map(player => player.id)];
-
-  while (team.length < 2 && attempt < 10) {
-    const candidateId = localRemainingPlayers.shift(); // Prend le premier joueur disponible
-    if (!candidateId) break; // Plus de joueurs disponibles
-
-    const candidate = remainingPlayers.find(player => player.id === candidateId);
-    if (!candidate) continue; // Ignore si le joueur n'est pas trouvé
-
-    // Vérifie si le joueur peut être ajouté à l'équipe
-    const isCompatible = lastMatches.every(match =>
-      !match.includes(candidateId) || // Le joueur n'était pas dans ce match
-      team.every(player => !match.includes(player.id)) // Pas de conflit avec l'équipe existante
-    );
-
-    if (isCompatible) {
-      team.push(candidate);
-    }
-
-    // Réinitialise les joueurs si aucun compatible n'a été trouvé
-    if (team.length < 2 && localRemainingPlayers.length === 0) {
-      localRemainingPlayers = [...remainingPlayers.map(player => player.id)];
-      team = [];
-      attempt++;
-    }
-  }
-
-  // Supprime les joueurs sélectionnés de remainingPlayers
-  team.forEach(selectedPlayer => {
-    const index = remainingPlayers.findIndex(player => player.id === selectedPlayer.id);
-    if (index !== -1) {
-      remainingPlayers.splice(index, 1); // Retire le joueur du tableau des joueurs restants
-    }
-  });
-
-  return team;
-}
-
 
   private static createMatch(
     matchNumber: number,

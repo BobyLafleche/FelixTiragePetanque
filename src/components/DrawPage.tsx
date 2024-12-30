@@ -57,11 +57,6 @@ const DrawPage: React.FC<DrawPageProps> = ({ playerCount, presentPlayers, onMatc
             <span>PRÉSENCE</span>
           </button>
         </div>
-        <div className="flex justify-center items-center">
-          <button id="settingsBtn" className="ml-4">
-            <i className="fas fa-cog"></i>
-          </button>
-        </div>
       </div>
     </main>
   );
