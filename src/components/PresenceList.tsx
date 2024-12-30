@@ -2,7 +2,6 @@ import React, {useState} from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaHome, FaDice, FaUsers } from 'react-icons/fa';
 import PlayerCircle from './PlayerCircle';
-import ConfirmationModal from './ConfirmationModal';
 import { Player ,Match} from '../types/match.types';
 
 interface PresenceListProps {
@@ -172,13 +171,6 @@ const PresenceList: React.FC<PresenceListProps> = ({
           </div>
         </div>
       </div>
-      <ConfirmationModal
-        isOpen={isModalOpen}
-        onClose={() => setModalOpen(false)}
-        onConfirm={handleConfirm}
-        ligne1="Cette action va effacer les équipes en cours."
-		ligne2="Êtes-vous sûr de vouloir continuer ?"
-      />
     </main>
   );
 };
