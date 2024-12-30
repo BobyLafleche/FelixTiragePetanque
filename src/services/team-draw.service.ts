@@ -2,7 +2,8 @@ import { Match, Player, DrawResult } from "../types/match.types";
 
 export class TeamDrawService {
   // Function to convert data to CSV format
-  private static convertToCSV(data: any[]): string {
+  private static convertToCSV(data: { [key: string]: any }[]): string {
+    if (!data || data.length === 0) return '';
     const csvRows = [];
     const headers = Object.keys(data[0]);
     csvRows.push(headers.join(',')); // Add headers
@@ -15,7 +16,8 @@ export class TeamDrawService {
   }
 
   // Function to convert data to CSV format with semicolon as separator
-  private static convertToCSVWithSemicolon(data: any[]): string {
+  private static convertToCSVWithSemicolon(data: { [key: string]: any }[]): string {
+    if (!data || data.length === 0) return '';
     const csvRows = [];
     const headers = Object.keys(data[0]);
     csvRows.push(headers.join(';')); // Use semicolon as separator
@@ -36,13 +38,13 @@ export class TeamDrawService {
       const matchNumber = match.matchNumber;
       
       // Get IDs for team 1
-      const team1Ids = match.team1.map(player => player.id);
+      const team1Ids: number[] = match.team1.map(player => player.id);
       
       // Get IDs for team 2
-      const team2Ids = match.team2.map(player => player.id);
+      const team2Ids: number[] = match.team2.map(player => player.id);
       
       // Format the row based on the length of team1Ids
-      let row;
+      let row: string;
       if (team1Ids.length === 3) {
         row = [matchNumber, ...team1Ids, ...team2Ids].join('\t');
       } else {
@@ -57,7 +59,7 @@ export class TeamDrawService {
   }
 
   // Function to download CSV file
-  private static downloadCSV(data: any[]): void {
+  public static downloadCSV(data: any[]): void {
     const csvData = this.convertToCSV(data);
     const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);

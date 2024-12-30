@@ -14,12 +14,13 @@ interface DrawPageProps {
 const DrawPage: React.FC<DrawPageProps> = ({ playerCount, presentPlayers, onMatchesUpdate }) => {
   const { lastMatches, setLastMatches } = useLastMatches(); // Access the context
   const navigate = useNavigate();
-  
+  const [csvData, setCsvData] = useState<any[]>([]);
+
   const handleDraw = () => {
     let last = lastMatches; // Access the lastMatches from context
-    const drawResult = TeamDrawService.generateMatches(presentPlayers.length, presentPlayers,lastMatches);
+    const drawResult = TeamDrawService.generateMatches(presentPlayers.length, presentPlayers, lastMatches);
     onMatchesUpdate(drawResult);
-    
+
     // Extract team1 and team2 from drawResult
     let newLastMatches = drawResult.matches.map(match => [
         ...match.team1.map(player => player.id),
@@ -27,8 +28,15 @@ const DrawPage: React.FC<DrawPageProps> = ({ playerCount, presentPlayers, onMatc
     ]);
 
     setLastMatches(newLastMatches); // Update state with current LastMatches
-    
+
+    // Set the CSV data to be downloaded
+    setCsvData(drawResult.matches);
+
     navigate('/teams');
+  };
+
+  const handleDownloadCSV = () => {
+    TeamDrawService.downloadCSV(csvData);
   };
 
   return (
@@ -49,6 +57,7 @@ const DrawPage: React.FC<DrawPageProps> = ({ playerCount, presentPlayers, onMatc
             <FaDice className="text-xl" />
             <span>TIRAGE</span>
           </button>
+          {/* Removed the CSV download button */}
           <button 
             onClick={() => navigate('/presence')}
             className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-md font-semibold hover:bg-blue-700 transition-colors"
