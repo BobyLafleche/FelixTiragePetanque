@@ -57,8 +57,7 @@ const HomePage: React.FC<HomePageProps> = ({
                 RAZ
               </button>
             </div>
-          </div>
-
+            </div>
           {(isValidCount) && (
             <button
               type="submit"

@@ -71,9 +71,13 @@ function App() {
   const saveParameters = () => {
     const duration = (document.getElementById('duration') as HTMLInputElement).value;
     const diversification = (document.getElementById('diversification') as HTMLInputElement).checked;
+    const terrains = (document.getElementById('terrains') as HTMLInputElement).value;
+    const typeMarquage = (document.getElementById('typeMarquage') as HTMLInputElement).checked;
 
     localStorage.setItem('duration', duration);
     localStorage.setItem('diversification', JSON.stringify(diversification));
+    localStorage.setItem('terrains', terrains);
+    localStorage.setItem('typeMarquage', JSON.stringify(typeMarquage));
 
     setIsModalOpen(false);
   };
@@ -91,9 +95,20 @@ function App() {
 		  localStorage.setItem('diversification', JSON.stringify(false)); // Valeur par défaut pour 'diversification'
 		}
 
+		if (!localStorage.getItem('terrains')) {
+		  localStorage.setItem('terrains', '1'); // Valeur par défaut pour 'terrains'
+		}
+
+		if (!localStorage.getItem('typeMarquage')) {
+		  localStorage.setItem('typeMarquage', JSON.stringify(false)); // Valeur par défaut pour 'typeMarquage'
+		}
+
 		// Lire les valeurs de localStorage
 		const savedDuration = localStorage.getItem('duration');
 		const savedDiversification = JSON.parse(localStorage.getItem('diversification') || 'false');
+		const savedTerrains = localStorage.getItem('terrains');
+		const savedTypeMarquage = JSON.parse(localStorage.getItem('typeMarquage') || 'false');
+
 
 		// Mettre à jour les champs du formulaire modal
 		const durationInput = document.getElementById('duration') as HTMLInputElement;
@@ -105,6 +120,17 @@ function App() {
 		if (diversificationInput) {
 		  diversificationInput.checked = savedDiversification;
 		}
+
+		const terrainsInput = document.getElementById('terrains') as HTMLInputElement;
+		if (terrainsInput && savedTerrains) {
+			terrainsInput.value = savedTerrains;
+		}
+
+		const typeMarquageInput = document.getElementById('typeMarquage') as HTMLInputElement;
+		if (typeMarquageInput) {
+		  typeMarquageInput.checked = savedTypeMarquage;
+		}
+		
 	  }, 0);
 	};
 
@@ -182,6 +208,22 @@ function App() {
 				Essaye de ne pas retomber sur les mêmes coéquipiers
 			  </p>
 			</div>
+      <div className="grid grid-cols-3 items-center mb-4 grid-cols-[10%,25%,auto]">
+        <div className="flex items-center col-span-1">
+          <label htmlFor="terrains" className="mr-2">Terrains:</label>
+          <input type="number" id="terrains" name="terrains" className="border rounded p-1 w-10 ml-2" />
+        </div>
+        <p className="text-sm text-gray-500 col-start-3">Nombre de terrains disponibles</p>
+      </div>
+			<div className="grid grid-cols-3 items-center mb-4 grid-cols-[10%,25%,auto]">
+			  <div className="flex items-center">
+				<input type="checkbox" id="typeMarquage" className="mr-2" />
+				<label htmlFor="typeMarquage" className="cursor-pointer">Lettres</label>
+			  </div>
+			  <p className="text-sm text-gray-500 col-start-3">
+				Type de marquage des terrains : Lettres ou Nombres
+			  </p>
+			</div>		    
 			<div className="grid grid-cols-3 items-center mb-4 grid-cols-[10%,25%,auto]">
 			  <div className="flex items-center">
 				<input 

@@ -41,23 +41,29 @@
     <div id="root"></div>  
     <script type="module" src="/src/main.tsx"></script>
     <script>
-      const settingsBtn = document.getElementById('settingsBtn');
-      const settingsModal = document.getElementById('settingsModal');
-      const closeBtn = document.querySelector('.close-btn');
+		import React, { useEffect } from 'react';
+	
+	  useEffect(() => {
+		const settingsBtn = document.getElementById('settingsBtn');
+		const settingsModal = document.getElementById('settingsModal');
+		const closeBtn = document.getElementById('closeBtn');
 
-      settingsBtn.onclick = () => {
-          settingsModal.classList.remove('hidden');
-      };
+		if (settingsBtn && settingsModal && closeBtn) {
+		  settingsBtn.onclick = () => {
+			settingsModal.classList.remove('hidden');
+		  };
 
-      closeBtn.onclick = () => {
-          settingsModal.classList.add('hidden');
-      };
+		  closeBtn.onclick = () => {
+			settingsModal.classList.add('hidden');
+		  };
 
-      window.onclick = (event) => {
-          if (event.target === settingsModal) {
-              settingsModal.classList.add('hidden');
-          }
-      };
+		  window.onclick = (event) => {
+			if (event.target === settingsModal) {
+			  settingsModal.classList.add('hidden');
+			}
+		  };
+		}
+	  }, []); // Le tableau vide signifie que useEffect ne s'exécute qu'une fois après le montage
     </script>
   </body>
 </html>
