@@ -12,7 +12,6 @@ import { LastMatchesProvider } from './contexts/LastMatchesContext'; // Ensure t
 function App() {
   const navigate = useNavigate();
   const [playerCount, setPlayerCount] = useState('');
-  //const [matchesState, setMatchesState] = useState<Match[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
   const [presentPlayers, setPresentPlayers] = useState<Player[]>([]);
   const [triplettePlayerIds, setTriplettePlayerIds] = useState<number[]>([]);
@@ -71,12 +70,12 @@ function App() {
   const saveParameters = () => {
     const duration = (document.getElementById('duration') as HTMLInputElement).value;
     const diversification = (document.getElementById('diversification') as HTMLInputElement).checked;
-    const terrains = (document.getElementById('terrains') as HTMLInputElement).value;
+    const NbrTerrains = (document.getElementById('NbrTerrains') as HTMLInputElement).value;
     const typeMarquage = (document.getElementById('typeMarquage') as HTMLInputElement).checked;
 
     localStorage.setItem('duration', duration);
     localStorage.setItem('diversification', JSON.stringify(diversification));
-    localStorage.setItem('terrains', terrains);
+    localStorage.setItem('NbrTerrains', NbrTerrains);
     localStorage.setItem('typeMarquage', JSON.stringify(typeMarquage));
 
     setIsModalOpen(false);
@@ -95,8 +94,8 @@ function App() {
 		  localStorage.setItem('diversification', JSON.stringify(false)); // Valeur par défaut pour 'diversification'
 		}
 
-		if (!localStorage.getItem('terrains')) {
-		  localStorage.setItem('terrains', '1'); // Valeur par défaut pour 'terrains'
+		if (!localStorage.getItem('NbrTerrains')) {
+		  localStorage.setItem('NbrTerrains', '1'); // Valeur par défaut pour 'terrains'
 		}
 
 		if (!localStorage.getItem('typeMarquage')) {
@@ -106,7 +105,7 @@ function App() {
 		// Lire les valeurs de localStorage
 		const savedDuration = localStorage.getItem('duration');
 		const savedDiversification = JSON.parse(localStorage.getItem('diversification') || 'false');
-		const savedTerrains = localStorage.getItem('terrains');
+		const savedNbrTerrains = localStorage.getItem('NbrTerrains');
 		const savedTypeMarquage = JSON.parse(localStorage.getItem('typeMarquage') || 'false');
 
 
@@ -121,9 +120,9 @@ function App() {
 		  diversificationInput.checked = savedDiversification;
 		}
 
-		const terrainsInput = document.getElementById('terrains') as HTMLInputElement;
-		if (terrainsInput && savedTerrains) {
-			terrainsInput.value = savedTerrains;
+		const NbrTerrainsInput = document.getElementById('NbrTerrains') as HTMLInputElement;
+		if (NbrTerrainsInput && savedNbrTerrains) {
+			NbrTerrainsInput.value = savedNbrTerrains;
 		}
 
 		const typeMarquageInput = document.getElementById('typeMarquage') as HTMLInputElement;
@@ -210,8 +209,8 @@ function App() {
 			</div>
       <div className="grid grid-cols-3 items-center mb-4 grid-cols-[10%,25%,auto]">
         <div className="flex items-center col-span-1">
-          <label htmlFor="terrains" className="mr-2">Terrains:</label>
-          <input type="number" id="terrains" name="terrains" className="border rounded p-1 w-10 ml-2" />
+          <label htmlFor="NbrTerrains" className="mr-2">Terrains:</label>
+          <input type="number" id="NbrTerrains" name="NbrTerrains" className="border rounded p-1 w-10 ml-2" />
         </div>
         <p className="text-sm text-gray-500 col-start-3">Nombre de terrains disponibles</p>
       </div>
