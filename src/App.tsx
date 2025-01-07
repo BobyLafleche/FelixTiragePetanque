@@ -56,7 +56,8 @@ function App() {
   };
 
 
-    const handleMatchesUpdate = (drawResult: { matches: Match[], triplettePlayerIds: number[] }) => {
+    // const handleMatchesUpdate = (drawResult: { matches: Match[], triplettePlayerIds: number[] }) => {
+	const handleMatchesUpdate = (drawResult: DrawResult) => {		
         setMatches(drawResult.matches);
         setTriplettePlayerIds(drawResult.triplettePlayerIds);
         const presentPlayersMap = new Map<number, Player>(presentPlayers.map(player => [player.id, player]));

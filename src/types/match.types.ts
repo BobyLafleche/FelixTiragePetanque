@@ -18,6 +18,6 @@ export interface Player {
 }
 
 export interface DrawResult {
-  matches: Match[];
+  matches: { teams: string; terrain: string }[];
   triplettePlayerIds: number[];
 }

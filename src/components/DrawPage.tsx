@@ -8,7 +8,7 @@ import { useLastMatches } from '../contexts/LastMatchesContext';
 interface DrawPageProps {
   playerCount: string;
   presentPlayers: Player[];
-  onMatchesUpdate: (drawResult: DrawResult) => void;
+  onMatchesUpdate: (drawResult: { matches: MatchPlayer[][]; winners: Player[] }) => void;
 }
 
 const DrawPage: React.FC<DrawPageProps> = ({ playerCount, presentPlayers, onMatchesUpdate }) => {
@@ -21,16 +21,27 @@ const DrawPage: React.FC<DrawPageProps> = ({ playerCount, presentPlayers, onMatc
     const drawResult = TeamDrawService.generateMatches(presentPlayers.length, presentPlayers, lastMatches);
     onMatchesUpdate(drawResult);
 
-    // Extract team1 and team2 from drawResult
-    let newLastMatches = drawResult.matches.map(match => [
-        ...match.team1.map(player => player.id),
-        ...match.team2.map(player => player.id)
-    ]);
 
-    setLastMatches(newLastMatches); // Update state with current LastMatches
+    if (drawResult && drawResult.matches) {
+		let newLastMatches = drawResult.matches.map(match => {
+		  const [team1, team2] = match.teams.split("contre").map(team => 
+			team.split(",").map(id => parseInt(id.trim()))
+		  );
+		  return [...team1, ...team2];
+		});		
+      // Extract team1 and team2 from drawResult
+      //let newLastMatches = drawResult.matches.map(match => [
+      //  ...match.team1.map(player => player.id),
+      //  ...match.team2.map(player => player.id)
+      //]);
 
-    // Set the CSV data to be downloaded
-    setCsvData(drawResult.matches);
+      setLastMatches(newLastMatches); // Update state with current LastMatches
+
+      // Set the CSV data to be downloaded
+      setCsvData(drawResult.matches);
+    } else {
+      console.error('drawResult is undefined or does not contain matches:', drawResult);
+    }
 
     navigate('/teams');
   };

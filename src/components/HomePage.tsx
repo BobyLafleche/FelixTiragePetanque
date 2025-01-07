@@ -1,14 +1,14 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaUsers } from 'react-icons/fa';
-import { Player, Match } from '../types/match.types';
+import { Player, Match, DrawResult } from '../types/match.types';
 
 interface HomePageProps {
   playerCount: string;
   onPlayerCountChange: (count: string) => void;
   onReset: () => void;
   presentPlayers: Player[];
-  onMatchesUpdate: (drawResult: { matches: Match[]; triplettePlayerIds: number[]; }) => void;  
+  onMatchesUpdate: (drawResult: DrawResult) => void;  
 }
 
 const HomePage: React.FC<HomePageProps> = ({

@@ -35,8 +35,9 @@ export class TeamDrawService {
 
     // Loop through each match and format the output
     data.forEach(match => {
-      const matchNumber = match.matchNumber;
-      
+      const matchNumber = match.matchNumber;      
+      const matchTerrain = match.terrain;
+
       // Get IDs for team 1
       const team1Ids: number[] = match.team1.map(player => player.id);
       
@@ -46,9 +47,9 @@ export class TeamDrawService {
       // Format the row based on the length of team1Ids
       let row: string;
       if (team1Ids.length === 3) {
-        row = [matchNumber, ...team1Ids, ...team2Ids].join('\t');
+        row = [matchNumber, ...matchTerrain, ...team1Ids, ...team2Ids].join('\t');
       } else {
-        row = [matchNumber, ...team1Ids, '', ...team2Ids].join('\t');
+        row = [matchNumber, ...matchTerrain, ...team1Ids, '', ...team2Ids].join('\t');
       }
       
       // Add the formatted row to csvRows
@@ -225,10 +226,16 @@ export class TeamDrawService {
         break;
     }
 
+    const savedNbrTerrains = parseInt(localStorage.getItem('NbrTerrains') || '1');
+    const savedTypeMarquage = JSON.parse(localStorage.getItem('typeMarquage') || 'false');
+
+    //const teams = matches.map(match => [match.team1.map(player => player.id), match.team2.map(player => player.id)]);
+    const distributedMatches = this.distributeMatches(matches);//teams
+
     // Check if logging is enabled before writing to CSV
     const isLoggingEnabled = JSON.parse(localStorage.getItem("loggingEnabled") || "false");
     if (isLoggingEnabled) {
-      const newCSVData = this.convertToCSVWithTab(matches); // Use the updated method
+      const newCSVData = this.convertToCSVWithTab(distributedMatches); // Use the updated method
 
       // Retrieve existing CSV data
       const existingCSVData = localStorage.getItem("tempCSVData") || "";
@@ -240,8 +247,218 @@ export class TeamDrawService {
       localStorage.setItem("tempCSVData", combinedCSVData);
     }
 
-    return { matches, triplettePlayerIds };
+    return { matches: distributedMatches, triplettePlayerIds };
   }
+
+//  public static generateMatchesNew(
+//    playerCount: number,
+//    presentPlayers: Player[],
+//    lastMatches: any[]
+//  ): DrawResult {
+//    const Diversification = JSON.parse(
+//      localStorage.getItem("diversification") || "false"
+//    );
+//
+//    if (playerCount < 4 || playerCount > 99) {
+//      return {
+//        matches: [
+//          {
+//            matchNumber: 1,
+//            matchText: "Le nombre de joueurs doit être entre 4 et 99",
+//            team1: [],
+//            team2: [] ,
+//          },
+//        ],
+//        triplettePlayerIds: [],
+//      };
+//    }
+//    console.log("Présents :", presentPlayers);
+//
+//    // Séparer les joueurs en groupes en fonction de leur bonus
+//    let playersWithBonus: Player[] = [];
+//    let playersWithNoBonus: Player[] = [];
+//
+//    playersWithBonus = presentPlayers.filter((player) => player.bonus > 0);
+//    playersWithNoBonus = presentPlayers.filter((player) => player.bonus === 0);	
+//    this.shuffleArray(playersWithBonus);
+//    this.shuffleArray(playersWithNoBonus);
+//
+//    const modulo = playerCount % 4;
+//
+//    // Extraire les derniers 3 joueurs de playersWithNoBonus en fonction du modulo
+//    const lastPlayers = playersWithNoBonus.slice(-3 * modulo);
+//
+//    // Ajouter les premiers joueurs restants de playersWithNoBonus avec playersWithBonus dans playersDoublettes
+//    const playersDoublettes = [...playersWithBonus, ...playersWithNoBonus.slice(0, -3 * modulo)];
+//
+//    this.shuffleArray(playersDoublettes);
+//
+//    // Combinaison finale des joueurs en un seul tableau
+//    const players = [...playersDoublettes, ...lastPlayers];
+//
+//    const matches: Match[] = [];
+//    const triplettePlayerIds: number[] = [];
+//
+//    let matchNumber = 1;
+//    let remainingPlayers = [...players];
+//
+//    console.log("modulo :", modulo);
+//    console.log("remainingPlayers :", remainingPlayers);
+//
+//    // Structure pour suivre les associations des joueurs
+//    let lastMatchAssociations: Set<string> = new Set();
+//
+//    switch (modulo) {
+//      case 0: // Uniquement des doublettes
+//        while (remainingPlayers.length >= 4) {
+//          const team1 = this.createTeam(
+//            remainingPlayers,
+//            Diversification,
+//            lastMatches
+//          );
+//          const team2 = this.createTeam(
+//            remainingPlayers,
+//            Diversification,
+//            lastMatches
+//          );
+//          matches.push(this.createMatch(matchNumber++, team1, team2));
+//        }
+//        break;
+//
+//      case 1: // Dernière ligne en 2v3
+//        while (remainingPlayers.length > 5) {
+//          const team1 = this.createTeam(
+//            remainingPlayers,
+//            Diversification,
+//            lastMatches
+//          );
+//          const team2 = this.createTeam(
+//            remainingPlayers,
+//            Diversification,
+//            lastMatches
+//          );
+//          matches.push(this.createMatch(matchNumber++, team1, team2));
+//        }
+//        if (remainingPlayers.length === 5) {
+//          const team1 = remainingPlayers.splice(0, 2);
+//          const team2 = remainingPlayers.splice(0, 3);
+//          triplettePlayerIds.push(...team2.map((p) => p.id));
+//          matches.push(this.createMatch(matchNumber++, team1, team2));
+//        }
+//        break;
+//
+//      case 2: // Dernière ligne en 3v3
+//        while (remainingPlayers.length > 6) {
+//          const team1 = this.createTeam(
+//            remainingPlayers,
+//            Diversification,
+//            lastMatches
+//          );
+//          const team2 = this.createTeam(
+//            remainingPlayers,
+//            Diversification,
+//            lastMatches
+//          );
+//          matches.push(this.createMatch(matchNumber++, team1, team2));
+//        }
+//        if (remainingPlayers.length === 6) {
+//          const team1 = remainingPlayers.splice(0, 3);
+//          triplettePlayerIds.push(...team1.map((p) => p.id));
+//          const team2 = remainingPlayers.splice(0, 3);
+//          triplettePlayerIds.push(...team2.map((p) => p.id));
+//          matches.push(this.createMatch(matchNumber++, team1, team2));
+//        }
+//        break;
+//
+//      case 3: // Avant-dernière en 3v3, dernière en 2v3
+//        while (remainingPlayers.length > 11) {
+//          const team1 = this.createTeam(
+//            remainingPlayers,
+//            Diversification,
+//            lastMatches
+//          );
+//          const team2 = this.createTeam(
+//            remainingPlayers,
+//            Diversification,
+//            lastMatches
+//          );
+//          matches.push(this.createMatch(matchNumber++, team1, team2));
+//        }
+//        if (remainingPlayers.length === 11) {
+//          const team1 = remainingPlayers.splice(0, 3);
+//          triplettePlayerIds.push(...team1.map((p) => p.id));
+//
+//          const team2 = remainingPlayers.splice(0, 3);
+//          triplettePlayerIds.push(...team2.map((p) => p.id));
+//
+//          matches.push(this.createMatch(matchNumber++, team1, team2));
+//
+//          const lastTeam1 = remainingPlayers.splice(0, 2);
+//          const lastTeam2 = remainingPlayers.splice(0, 3);
+//
+//          triplettePlayerIds.push(...lastTeam2.map((p) => p.id));
+//
+//          matches.push(this.createMatch(matchNumber++, lastTeam1, lastTeam2));
+//        }
+//        break;
+//    }
+//
+//    // Check if logging is enabled before writing to CSV
+//    const isLoggingEnabled = JSON.parse(localStorage.getItem("loggingEnabled") || "false");
+//    if (isLoggingEnabled) {
+//      const newCSVData = this.convertToCSVWithTab(matches); // Use the updated method
+//
+//      // Retrieve existing CSV data
+//      const existingCSVData = localStorage.getItem("tempCSVData") || "";
+//      
+//      // Combine existing data with new data
+//      const combinedCSVData = existingCSVData ? existingCSVData + '\n' + newCSVData : newCSVData;
+//
+//      // Store the combined CSV data in localStorage
+//      localStorage.setItem("tempCSVData", combinedCSVData);
+//    }
+//
+//    const savedNbrTerrains = parseInt(localStorage.getItem('NbrTerrains') || '1');
+//    const savedTypeMarquage = JSON.parse(localStorage.getItem('typeMarquage') || 'false');
+//
+//    const teams = matches.map(match => [match.team1.map(player => player.id), match.team2.map(player => player.id)]);
+//    const distributedMatches = this.distributeMatches(teams);
+//
+//    return { matches: distributedMatches, triplettePlayerIds };
+//  }
+
+    private static distributeMatches(matches: Array<{
+      matchNumber: number;
+      matchText: string;
+      team1: any[];
+      team2: any[];
+    }>): { matchNumber: number; teams: string; team1: any[]; team2: any[]; terrain: string }[] {
+      const distributedMatches: { matchNumber: number; teams: string;  team1: any[]; team2: any[]; terrain: string }[] = [];
+      const terrains: string[] = [];
+
+      // Create terrains based on marking type
+      for (let i = 0; i < parseInt(localStorage.getItem('NbrTerrains') || '1'); i++) {
+        terrains.push(JSON.parse(localStorage.getItem('typeMarquage') || 'false') 
+          ? String.fromCharCode(65 + i) 
+          : (i + 1).toString());
+      }
+
+      let terrainIndex = 0;
+      for (let i = 0; i < matches.length; i++) {
+        distributedMatches.push({
+          matchNumber: matches[i].matchNumber,
+          teams: matches[i].matchText,
+          team1: matches[i].team1,
+          team2: matches[i].team2,          
+          terrain: terrains[terrainIndex]
+        });
+        terrainIndex += 2; // Skip one terrain
+        if (terrainIndex >= terrains.length) terrainIndex = 1; // Start over from terrain 1
+      }
+      return distributedMatches;
+    }
+
+
 
   private static createTeam(
     remainingPlayers: Player[],
@@ -331,7 +548,7 @@ let lastMatches = { team1: [], team2: [] };
 
 //const handleDraw = () => {
 //  console.log('presentPlayers before draw:', presentPlayers);
-//  const drawResult = TeamDrawService.generateMatches(presentPlayers.length, presentPlayers, lastMatches);
+//  const drawResult = TeamDrawService.generateMatchesNew(presentPlayers.length, presentPlayers, lastMatches);
 //  onMatchesUpdate(drawResult);
 //  
 //  // Extract team1 and team2 from drawResult and store them in the global lastMatches

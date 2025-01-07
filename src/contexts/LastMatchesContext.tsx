@@ -10,26 +10,13 @@ const LastMatchesContext = createContext<LastMatchesContextType | undefined>(und
 
 export const LastMatchesProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [lastMatches, setLastMatches] = useState<number[][]>([]);
-										   
-													  
-										  
-	 
-
     return (
         <LastMatchesContext.Provider value={{ lastMatches, setLastMatches }}>
             {children}
         </LastMatchesContext.Provider>
-
-												   
+											   
     );
 };
-
-		  
-																		 
-				
-								  
-	
- 
 
 export function useLastMatches() {
     const context = useContext(LastMatchesContext);

@@ -26,18 +26,23 @@ const TeamsDisplay: React.FC<TeamsDisplayProps> = ({ matches, onBack }) => {
             <FaUsers />
             <span>PRÉSENCE</span>
           </button>
-        </div>
-        
-        <div className="space-y-4">
-          {matches && matches.map((match, index) => (
-            <div key={index} className="p-2 bg-gray-50 rounded-md">
-				<div className="flex justify-between text-lg">
-				  <span>{index + 1}.</span>
-				  <span>{match.matchText}</span>
-				</div>
-            </div>
-          ))}
-        </div>
+        </div>        
+		<div className="space-y-4">
+		  <div className="bg-gray-50 rounded-md">
+			<div className="grid items-center mb-4 grid-cols-[15%,25%,auto]  font-bold p-2 bg-gray-200">
+			  <span> </span>
+			  <span>Terrains</span>
+			  <span>Équipes</span>
+			</div>
+			{matches && matches.map((match, index) => (
+			  <div key={index} className="grid items-center mb-4 grid-cols-[15%,25%,auto]  p-2 bg-gray-200">
+				<span>{index + 1}</span>
+				<span>{match.terrain}</span>
+				<span>{match.teams}</span>
+			  </div>
+			))}
+		  </div>
+		</div>
       </div>
     </main>
   );
