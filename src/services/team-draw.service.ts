@@ -30,7 +30,7 @@ export class TeamDrawService {
   }
 
   // Function to convert data to CSV format with tab as separator
-  private static convertToCSVWithTab(data: any[]): string {
+  private static convertToCSVWithTab(data: any[], numPartie: number): string {
     const csvRows = [];
 
     // Loop through each match and format the output
@@ -47,9 +47,9 @@ export class TeamDrawService {
       // Format the row based on the length of team1Ids
       let row: string;
       if (team1Ids.length === 3) {
-        row = [matchNumber, ...matchTerrain, ...team1Ids, ...team2Ids].join('\t');
+        row = [numPartie+1,matchNumber, ...matchTerrain, ...team1Ids, ...team2Ids].join('\t');
       } else {
-        row = [matchNumber, ...matchTerrain, ...team1Ids, '', ...team2Ids].join('\t');
+        row =  [numPartie+1,matchNumber, ...matchTerrain, ...team1Ids, '', ...team2Ids].join('\t');
       }
       
       // Add the formatted row to csvRows
@@ -76,7 +76,8 @@ export class TeamDrawService {
   public static generateMatches(
     playerCount: number,
     presentPlayers: Player[],
-    lastMatches: any[]
+    lastMatches: any[],
+    numPartie: number
   ): DrawResult {
     const Diversification = JSON.parse(
       localStorage.getItem("diversification") || "false"
@@ -235,7 +236,7 @@ export class TeamDrawService {
     // Check if logging is enabled before writing to CSV
     const isLoggingEnabled = JSON.parse(localStorage.getItem("loggingEnabled") || "false");
     if (isLoggingEnabled) {
-      const newCSVData = this.convertToCSVWithTab(distributedMatches); // Use the updated method
+      const newCSVData = this.convertToCSVWithTab(distributedMatches, numPartie); // Use the updated method
 
       // Retrieve existing CSV data
       const existingCSVData = localStorage.getItem("tempCSVData") || "";

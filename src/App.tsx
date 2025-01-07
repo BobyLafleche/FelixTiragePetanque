@@ -21,6 +21,8 @@ function App() {
   const [isLoggingEnabled, setIsLoggingEnabled] = useState(() => {
     return JSON.parse(localStorage.getItem("loggingEnabled") || "false");
   });
+    // Initialisation de la variable NumPartie avec useState
+  const [NumPartie, setNumPartie] = useState(0);
 
   const teamDrawService = new TeamDrawService();
 
@@ -171,6 +173,10 @@ function App() {
             });
     });
   }
+
+  const handleBack = () => {
+    setMatches([]);
+  };
 
   return (
     <LastMatchesProvider>
@@ -337,6 +343,8 @@ function App() {
                 playerCount={playerCount}
                 presentPlayers={presentPlayers.filter(p => p.present)}
                 onMatchesUpdate={handleMatchesUpdate}
+                NumPartie={NumPartie}
+                setNumPartie={setNumPartie}
               />
             ) : (
               <Navigate to="/" replace />
@@ -349,7 +357,8 @@ function App() {
             matches.length > 0 ? (
               <TeamsDisplay 
                 matches={matches}
-                onBack={() => setMatches([])}
+                onBack={handleBack}
+                NumPartie={NumPartie}
               />
             ) : (
               <Navigate to="/draw" replace />

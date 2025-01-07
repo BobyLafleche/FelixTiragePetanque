@@ -9,16 +9,24 @@ interface DrawPageProps {
   playerCount: string;
   presentPlayers: Player[];
   onMatchesUpdate: (drawResult: { matches: MatchPlayer[][]; winners: Player[] }) => void;
+  NumPartie: number;
+  setNumPartie: React.Dispatch<React.SetStateAction<number>>;
 }
 
-const DrawPage: React.FC<DrawPageProps> = ({ playerCount, presentPlayers, onMatchesUpdate }) => {
+  
+const DrawPage: React.FC<DrawPageProps> = ({ playerCount, presentPlayers, onMatchesUpdate, NumPartie, setNumPartie }) => {
   const { lastMatches, setLastMatches } = useLastMatches(); // Access the context
   const navigate = useNavigate();
   const [csvData, setCsvData] = useState<any[]>([]);
+  
+  // Fonction pour incrémenter NumPartie
+  const incrementNumPartie = () => {
+    setNumPartie(prevNumPartie => prevNumPartie + 1);
+  };
 
   const handleDraw = () => {
     let last = lastMatches; // Access the lastMatches from context
-    const drawResult = TeamDrawService.generateMatches(presentPlayers.length, presentPlayers, lastMatches);
+    const drawResult = TeamDrawService.generateMatches(presentPlayers.length, presentPlayers, lastMatches, NumPartie);
     onMatchesUpdate(drawResult);
 
 
@@ -37,7 +45,8 @@ const DrawPage: React.FC<DrawPageProps> = ({ playerCount, presentPlayers, onMatc
 
       setLastMatches(newLastMatches); // Update state with current LastMatches
 
-      // Set the CSV data to be downloaded
+      incrementNumPartie();
+      // Set the CSV data to be downloaded      
       setCsvData(drawResult.matches);
     } else {
       console.error('drawResult is undefined or does not contain matches:', drawResult);
