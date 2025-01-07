@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef  } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaHome, FaUsers } from 'react-icons/fa';
 import { Match } from '../types/match.types';
@@ -11,14 +11,26 @@ interface TeamsDisplayProps {
 
 const TeamsDisplay: React.FC<TeamsDisplayProps> = ({ matches, onBack, NumPartie }) => {
   const navigate = useNavigate();
+  const mainRef = useRef<HTMLDivElement | null>(null);
+  const previousNumPartie = useRef<number | null>(null);
 
+  useEffect(() => {
+    // Log toujours au premier montage et si NumPartie change
+    if (mainRef.current) {
+      if (previousNumPartie.current === null || previousNumPartie.current !== NumPartie) {
+        console.log(mainRef.current.outerHTML);
+      }
+    }
 
+    // Met à jour la valeur précédente
+    previousNumPartie.current = NumPartie;
+  }, [NumPartie]); // Dépendance sur NumPartie pour exécuter l'effet lors de son changement	
 
   // Debug log to check matches
   console.log('Matches in TeamsDisplay:', matches);
 
   return (
-    <main className="container mx-auto px-4 py-6 max-w-lg">
+	<main ref={mainRef} className="container mx-auto px-4 py-6 max-w-lg">    
       <div className="bg-white rounded-lg shadow-md p-6 mb-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold">Partie n°{NumPartie}</h2>
