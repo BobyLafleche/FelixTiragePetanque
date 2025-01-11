@@ -8,7 +8,7 @@ interface HomePageProps {
   onPlayerCountChange: (count: string) => void;
   onReset: () => void;
   presentPlayers: Player[];
-  onMatchesUpdate: (drawResult: DrawResult) => void;  
+  onMatchesUpdate: (DrawResult) => void;  
 }
 
 const HomePage: React.FC<HomePageProps> = ({
@@ -19,8 +19,14 @@ const HomePage: React.FC<HomePageProps> = ({
   onMatchesUpdate
 }) => {
   const navigate = useNavigate();
+
+  // Récupérer NbrTerrains depuis localStorage
+  const nbrTerrains = localStorage.getItem('NbrTerrains');
+  const maxPlayers = nbrTerrains && parseInt(nbrTerrains) > 0 ? 6 * parseInt(nbrTerrains) : 99;
+
   const count = parseInt(playerCount);
-  const isValidCount = !isNaN(count) && count >= 4 && count <= 99;
+  const isValidCount = !isNaN(count) && count >= 4 && count <= maxPlayers;
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,7 +41,7 @@ const HomePage: React.FC<HomePageProps> = ({
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label htmlFor="playerCount" className="block text-lg font-semibold text-gray-700 mb-2 text-center">
-              Nombre de joueurs (4-99)
+              Nombre de joueurs (4-{maxPlayers})
             </label>
             <div className="flex gap-2">
               <input
@@ -45,7 +51,7 @@ const HomePage: React.FC<HomePageProps> = ({
                 onChange={(e) => onPlayerCountChange(e.target.value)}
                 className="flex-1 p-3 border rounded-md text-lg"
                 min="4"
-                max="99"
+                max={maxPlayers}
                 placeholder="Entrez un nombre"
                 required
               />
@@ -57,7 +63,7 @@ const HomePage: React.FC<HomePageProps> = ({
                 RAZ
               </button>
             </div>
-            </div>
+          </div>
           {(isValidCount) && (
             <button
               type="submit"

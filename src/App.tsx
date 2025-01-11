@@ -4,10 +4,11 @@ import HomePage from './components/HomePage';
 import PresenceList from './components/PresenceList';
 import DrawPage from './components/DrawPage';
 import TeamsDisplay from './components/TeamsDisplay';
-import { Match, Player } from './types/match.types';
-import { TeamDrawService,updatePlayerBonus } from './services/team-draw.service';
-import { LastMatchesProvider } from './contexts/LastMatchesContext'; // Ensure the path is correct
-
+import { Match, Player, DrawResult } from './types/match.types';
+import { TeamDrawService, updatePlayerBonus } from './services/team-draw.service';
+import { LastMatchesProvider } from './contexts/LastMatchesContext';
+import { jsPDF } from "jspdf";
+import html2canvas from 'html2canvas';
 
 function App() {
   const navigate = useNavigate();
@@ -18,13 +19,17 @@ function App() {
   const [players, setPlayers] = useState<Map<number, Player>>(new Map());
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [lastMatches, setLastMatches] = useState([]);
-  const [isLoggingEnabled, setIsLoggingEnabled] = useState(() => {
-    return JSON.parse(localStorage.getItem("loggingEnabled") || "false");
-  });
-    // Initialisation de la variable NumPartie avec useState
+  const [logType, setLogType] = useState("None"); // État pour le type de log
   const [NumPartie, setNumPartie] = useState(0);
+  // isLoggingEnabled est true si logType est différent de "None"
+  const [isLoggingEnabled, setIsLoggingEnabled] = useState(() => {
+    return logType !== "None";
+  });
 
-  const teamDrawService = new TeamDrawService();
+  // Mettre à jour isLoggingEnabled lorsque logType change
+  useEffect(() => {
+    setIsLoggingEnabled(logType !== "None");
+  }, [logType]);
 
   useEffect(() => {
     // Clear the temporary CSV data on startup
@@ -46,25 +51,23 @@ function App() {
     setPlayerCount('');
     setPresentPlayers([]);
     setMatches([]);
-	setTriplettePlayerIds([]);
+    setTriplettePlayerIds([]);
     setPlayers(new Map());
     setLastMatches([]);
   };
 
   const handleTogglePresence = (playerId: number) => {
-    setPresentPlayers(prev => prev.map(player => 
+    setPresentPlayers(prev => prev.map(player =>
       player.id === playerId ? { ...player, present: !player.present, bonus: player.present ? 0 : player.bonus } : player
     ));
   };
 
-
-    // const handleMatchesUpdate = (drawResult: { matches: Match[], triplettePlayerIds: number[] }) => {
-	const handleMatchesUpdate = (drawResult: DrawResult) => {		
-        setMatches(drawResult.matches);
-        setTriplettePlayerIds(drawResult.triplettePlayerIds);
-        const presentPlayersMap = new Map<number, Player>(presentPlayers.map(player => [player.id, player]));
-        updatePlayerBonus(presentPlayersMap, drawResult.triplettePlayerIds)
-    };
+  const handleMatchesUpdate = (drawTeams: DrawResult) => {
+    setMatches(drawTeams.matches);
+    setTriplettePlayerIds(drawTeams.triplettePlayerIds);
+    const presentPlayersMap = new Map<number, Player>(presentPlayers.map(player => [player.id, player]));
+    updatePlayerBonus(presentPlayersMap, drawTeams.triplettePlayerIds);
+  };
 
   const isMatchesEmpty = () => {
     return matches.length === 0;
@@ -75,82 +78,169 @@ function App() {
     const diversification = (document.getElementById('diversification') as HTMLInputElement).checked;
     const NbrTerrains = (document.getElementById('NbrTerrains') as HTMLInputElement).value;
     const typeMarquage = (document.getElementById('typeMarquage') as HTMLInputElement).checked;
+	const logType = (document.getElementById('logType') as HTMLInputElement).value;
 
+    // Récupérer l'ancienne valeur de NbrTerrains
+    const oldNbrTerrains = localStorage.getItem('NbrTerrains');
+
+    // Sauvegarder les paramètres dans localStorage
     localStorage.setItem('duration', duration);
     localStorage.setItem('diversification', JSON.stringify(diversification));
-    localStorage.setItem('NbrTerrains', NbrTerrains);
+
+    // Gestion spéciale pour NbrTerrains
+    if (NbrTerrains === '0') {
+      localStorage.removeItem('NbrTerrains'); // Effacer la variable si le nombre de terrains est 0
+      localStorage.removeItem('usedGrounds'); // Effacer usedGrounds car il n'y a plus de terrains
+    } else {
+      localStorage.setItem('NbrTerrains', NbrTerrains); // Sinon, sauvegarder la valeur
+
+      // Si le nombre de terrains a changé, effacer usedGrounds
+      if (oldNbrTerrains !== NbrTerrains) {
+        localStorage.removeItem('usedGrounds');
+      }
+    }
+
     localStorage.setItem('typeMarquage', JSON.stringify(typeMarquage));
+
+	localStorage.setItem("logType",logType); // sauvegarde le type de log	
 
     setIsModalOpen(false);
   };
 
-	const openModal = () => {
-	  setIsModalOpen(true);
+  const openModal = () => {
+    setIsModalOpen(true);
 
-	  setTimeout(() => {
-		// Initialiser les valeurs par défaut dans localStorage si elles n'existent pas
-		if (!localStorage.getItem('duration')) {
-		  localStorage.setItem('duration', '0'); // Valeur par défaut pour 'duration'
-		}
+    setTimeout(() => {
+      // Initialiser les valeurs par défaut dans localStorage si elles n'existent pas
+      if (!localStorage.getItem('duration')) {
+        localStorage.setItem('duration', '0');
+      }
 
-		if (!localStorage.getItem('diversification')) {
-		  localStorage.setItem('diversification', JSON.stringify(false)); // Valeur par défaut pour 'diversification'
-		}
+      if (!localStorage.getItem('diversification')) {
+        localStorage.setItem('diversification', JSON.stringify(false));
+      }
 
-		if (!localStorage.getItem('NbrTerrains')) {
-		  localStorage.setItem('NbrTerrains', '1'); // Valeur par défaut pour 'terrains'
-		}
+      if (!localStorage.getItem('NbrTerrains')) {
+        localStorage.setItem('NbrTerrains', '0');
+      }
 
-		if (!localStorage.getItem('typeMarquage')) {
-		  localStorage.setItem('typeMarquage', JSON.stringify(false)); // Valeur par défaut pour 'typeMarquage'
-		}
+      if (!localStorage.getItem('typeMarquage')) {
+        localStorage.setItem('typeMarquage', JSON.stringify(false));
+      }
 
-		// Lire les valeurs de localStorage
-		const savedDuration = localStorage.getItem('duration');
-		const savedDiversification = JSON.parse(localStorage.getItem('diversification') || 'false');
-		const savedNbrTerrains = localStorage.getItem('NbrTerrains');
-		const savedTypeMarquage = JSON.parse(localStorage.getItem('typeMarquage') || 'false');
+      // Lire les valeurs de localStorage
+      const savedDuration = localStorage.getItem('duration');
+      const savedDiversification = JSON.parse(localStorage.getItem('diversification') || 'false');
+      const savedNbrTerrains = localStorage.getItem('NbrTerrains');
+      const savedTypeMarquage = JSON.parse(localStorage.getItem('typeMarquage') || 'false');
 
+      // Mettre à jour les champs du formulaire modal
+      const durationInput = document.getElementById('duration') as HTMLInputElement;
+      if (durationInput && savedDuration) {
+        durationInput.value = savedDuration;
+      }
 
-		// Mettre à jour les champs du formulaire modal
-		const durationInput = document.getElementById('duration') as HTMLInputElement;
-		if (durationInput && savedDuration) {
-		  durationInput.value = savedDuration;
-		}
+      const diversificationInput = document.getElementById('diversification') as HTMLInputElement;
+      if (diversificationInput) {
+        diversificationInput.checked = savedDiversification;
+      }
 
-		const diversificationInput = document.getElementById('diversification') as HTMLInputElement;
-		if (diversificationInput) {
-		  diversificationInput.checked = savedDiversification;
-		}
+      const NbrTerrainsInput = document.getElementById('NbrTerrains') as HTMLInputElement;
+      if (NbrTerrainsInput && savedNbrTerrains) {
+        NbrTerrainsInput.value = savedNbrTerrains;
+      }
 
-		const NbrTerrainsInput = document.getElementById('NbrTerrains') as HTMLInputElement;
-		if (NbrTerrainsInput && savedNbrTerrains) {
-			NbrTerrainsInput.value = savedNbrTerrains;
-		}
+      const typeMarquageInput = document.getElementById('typeMarquage') as HTMLInputElement;
+      if (typeMarquageInput) {
+        typeMarquageInput.checked = savedTypeMarquage;
+      }
+//
+      // Mettre à jour les champs du formulaire modal
+	  const savedLogType = localStorage.getItem('logType');
+      const LogTypeInput = document.getElementById('logType') as HTMLInputElement;
+	  if (LogTypeInput) {
+		  LogTypeInput.value = savedLogType;
 
-		const typeMarquageInput = document.getElementById('typeMarquage') as HTMLInputElement;
-		if (typeMarquageInput) {
-		  typeMarquageInput.checked = savedTypeMarquage;
-		}
-		
-	  }, 0);
-	};
+	  }
 
+    }, 0);
+  };
 
   const closeModal = () => setIsModalOpen(false);
 
-  const handleLoggingToggle = (event) => {
-    const isChecked = event.target.checked;
-    setIsLoggingEnabled(isChecked);
-    localStorage.setItem("loggingEnabled", JSON.stringify(isChecked));
+  const handleLogTypeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setLogType(event.target.value); // Met à jour logType avec la nouvelle valeur
   };
 
-  const handleDownload = () => {
+const handleDownload = () => {
+  if (logType === "CSV") {
+    // Enregistrement en CSV (inchangé)
+    const csvData = localStorage.getItem('tempCSVData');
+    if (csvData) {
+      const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.setAttribute('download', 'matches.csv');
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    } else {
+      alert('No CSV data available for download.');
+    }
+  } else if (logType === "PDF") {
+    // Récupérer les captures d'écran depuis localStorage
+    const screenshots = JSON.parse(localStorage.getItem('screenshots') || '[]');
+
+    if (screenshots.length === 0) {
+      alert('No screenshots available for download.');
+      return;
+    }
+
+    // Créer un nouveau document PDF
+    const doc = new jsPDF();
+
+    // Fonction pour ajouter une capture d'écran au PDF
+    const addScreenshotToPDF = async (screenshot: string, index: number) => {
+      // Convertir le HTML en image avec html2canvas
+      const element = document.createElement('div');
+      element.innerHTML = screenshot;
+      document.body.appendChild(element);
+
+      const canvas = await html2canvas(element);
+      const imgData = canvas.toDataURL('image/png');
+
+      // Ajouter l'image au PDF
+      if (index > 0) {
+        doc.addPage(); // Ajouter une nouvelle page pour chaque capture d'écran après la première
+      }
+      doc.addImage(imgData, 'PNG', 10, 10, 180, 0);
+
+      // Nettoyer l'élément temporaire
+      document.body.removeChild(element);
+    };
+
+    // Ajouter chaque capture d'écran au PDF
+    screenshots.forEach(async (screenshot, index) => {
+      await addScreenshotToPDF(screenshot, index);
+
+      // Télécharger le PDF après avoir ajouté la dernière capture d'écran
+      if (index === screenshots.length - 1) {
+        doc.save('matches.pdf');
+      }
+    });
+  } else {
+    // Si logType est "None", ne rien faire ou afficher un message
+    alert('Choisir un type.');
+  }
+};
+
+  const handleDownload__ = () => {
     const csvData = localStorage.getItem("tempCSVData"); // Retrieve the temporary CSV data
     if (csvData) {
       const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
-      
+
       const a = document.createElement('a');
       a.href = url;
       a.setAttribute('download', 'matches.csv'); // Specify the file name
@@ -164,19 +254,20 @@ function App() {
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/service-worker.js')
-            .then((registration) => {
-                console.log('Service Worker registered with scope:', registration.scope);
-            })
-            .catch((error) => {
-                console.error('Service Worker registration failed:', error);
-            });
+      navigator.serviceWorker.register('/service-worker.js')
+        .then((registration) => {
+          console.log('Service Worker registered with scope:', registration.scope);
+        })
+        .catch((error) => {
+          console.error('Service Worker registration failed:', error);
+        });
     });
   }
 
   const handleBack = () => {
     setMatches([]);
   };
+
 
   return (
     <LastMatchesProvider>
@@ -232,17 +323,21 @@ function App() {
 			</div>		    
 			<div className="grid grid-cols-3 items-center mb-4 grid-cols-[10%,25%,auto]">
 			  <div className="flex items-center">
-				<input 
-				  type="checkbox" 
-				  id="logging" 
-				  checked={isLoggingEnabled} 
-				  onChange={handleLoggingToggle} 
-				  className="mr-2" 
-				/>
-				<label htmlFor="logging" className="cursor-pointer">Logs</label>
+				<select
+				  id="logType"
+				  value={logType}
+				  onChange={handleLogTypeChange}
+				  className="mr-2 p-1 border rounded"
+				>
+				  <option value="None">Aucun</option>
+				  <option value="CSV">CSV</option>
+				  <option value="PDF">PDF</option>
+				</select>
 			  </div>
 			  <p className="text-sm text-gray-500 col-start-3">
-				Enregistre les tirages dans un fichier CSV
+				{logType === "None"
+				  ? "Aucun enregistrement de tirage"
+				  : `Enregistre les tirages dans un fichier ${logType}`}
 			  </p>
 			</div>
             <div className="flex justify-between mt-4">

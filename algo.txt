@@ -1,0 +1,86 @@
+analyse cet algo
+	const calculerNombreDoublettes = (
+		N : number,
+		T :number
+	): number => {
+	  // Calcul du nombre maximal de triplettes
+	  const maxTriplettes = Math.floor(N / 6);
+
+	  // Calcul du nombre de joueurs restants après avoir créé les triplettes
+	  const joueursRestants = N - 6 * maxTriplettes;
+	  let NombreDoublettes = T-maxTriplettes;
+	  if (NombreDoublettes) {
+		  switch(joueursRestants) {	  		  
+			  case 1:
+			  case 2:
+			  case 3:	  	  
+				NombreDoublettes ++;
+				break;
+			  case 0:
+			  case 4:			  
+				NombreDoublettes +=2;
+				break;
+			 case 5:
+			   NombreDoublettes =0;
+		  }
+	  }
+	  return NombreDoublettes;
+	};
+	
+	const reste = [-1, 1, 2, 7];
+	let EstimationTerrains = Math.floor(remainingPlayers.length / 4);
+	let MaxTriplettes = nbrTerrains * 6;
+	let compensation = 0;
+	// Activer la compensation s'il n'y a pas assez de terrains
+	if (EstimationTerrains > nbrTerrains) {
+	  compensation = EstimationTerrains - nbrTerrains;
+	  console.log("Pas assez de terrains :", nbrTerrains, EstimationTerrains);
+	}
+	if (compensation > 0 ) {
+		let nombreDoublettes = calculerNombreDoublettes(remainingPlayers.length, nbrTerrains);
+		console.log("Nombre optimal de doublettes :", nombreDoublettes);
+		// Ajuster la répartition des joueurs en fonction de la compensation
+		while (nombreDoublettes) {
+		  const team1 = remainingPlayers.splice(0, 2);
+		  const team2 = remainingPlayers.splice(0, 2);													   
+		  matches.push(this.createMatch(matchNumber++, team1, team2));
+		  nombreDoublettes--;
+		}
+		let nombreTriplettes = Math.floor(remainingPlayers.length/6);
+		// Ajuster la répartition des joueurs en fonction de la compensation
+		while (nombreTriplettes > 0) {
+		  const team1 = remainingPlayers.splice(0, 3);
+		  const team2 = remainingPlayers.splice(0, 3);
+		  matches.push(this.createMatch(matchNumber++, team1, team2));
+		  nombreTriplettes --;
+		}
+		modulo = remainingPlayers.length %4;
+	}
+	else {
+		while (remainingPlayers.length > (4 + reste[modulo])) {
+		  const team1 = remainingPlayers.splice(0, 2);
+		  const team2 = remainingPlayers.splice(0, 2);
+		  matches.push(this.createMatch(matchNumber++, team1, team2));
+		}	
+	}
+	switch (modulo) {
+	case 1:
+	  // Dernière ligne en 2v3
+	  createAndAddMatch(2, 3);
+	  break;
+
+	case 2:
+	  // Dernière ligne en 3v3
+	  createAndAddMatch(3, 3);
+	  break;
+
+	case 3:
+	  // Avant-dernière en 3v3, dernière en 2v3
+	  createAndAddMatch(3, 3); // Avant-dernière ligne
+	  createAndAddMatch(2, 3); // Dernière ligne
+	  break;
+	}
+	
+le but de l'algo est de repartir tous les joueurs soit en doublettes 2v2 soit en triplette 3v3 et eventuellement une equipe en 3v2.
+les doublettes sont prioritaires ensuite les triplettes.
+optimize l'algo pour faire jouer TOUS les joueurs au maximum en DOUBLETTE	

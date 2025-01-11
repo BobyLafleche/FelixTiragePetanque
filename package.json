@@ -25,6 +25,8 @@
   },
   "dependencies": {
     "@nativescript/core": "^8.8.6",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^2.5.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-icons": "^4.12.0",

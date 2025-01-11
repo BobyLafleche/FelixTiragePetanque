@@ -1,4 +1,6 @@
 import { Match, Player, DrawResult } from "../types/match.types";
+ 
+import { jsPDF } from "jspdf";
 
 export class TeamDrawService {
   // Function to convert data to CSV format
@@ -47,9 +49,9 @@ export class TeamDrawService {
       // Format the row based on the length of team1Ids
       let row: string;
       if (team1Ids.length === 3) {
-        row = [numPartie+1,matchNumber, ...matchTerrain, ...team1Ids, ...team2Ids].join('\t');
+        row = [numPartie + 1, matchNumber, ...matchTerrain, ...team1Ids, ...team2Ids].join('\t');
       } else {
-        row =  [numPartie+1,matchNumber, ...matchTerrain, ...team1Ids, '', ...team2Ids].join('\t');
+        row = [numPartie + 1, matchNumber, ...matchTerrain, ...team1Ids, '', ...team2Ids].join('\t');
       }
       
       // Add the formatted row to csvRows
@@ -82,15 +84,21 @@ export class TeamDrawService {
     const Diversification = JSON.parse(
       localStorage.getItem("diversification") || "false"
     );
+	 // Récupérer NbrTerrains depuis localStorage
+    const nbrTerrains = Number(localStorage.getItem('NbrTerrains')) || 0;
+    const maxPlayers = nbrTerrains && parseInt(nbrTerrains) > 0 ? 6 * parseInt(nbrTerrains) : playerCount;
 
-    if (playerCount < 4 || playerCount > 99) {
+    // Valider le nombre de joueurs
+    if (playerCount < 4 || playerCount > maxPlayers) {
       return {
         matches: [
           {
             matchNumber: 1,
-            matchText: "Le nombre de joueurs doit être entre 4 et 99",
+            matchText: "Le nombre de joueurs doit être entre 4 et maxPlayers",
             team1: [],
-            team2: [] ,
+            team2: [],
+            terrain: 0,
+            teams: [],
           },
         ],
         triplettePlayerIds: [],
@@ -99,15 +107,13 @@ export class TeamDrawService {
     console.log("Présents :", presentPlayers);
 
     // Séparer les joueurs en groupes en fonction de leur bonus
-    let playersWithBonus: Player[] = [];
-    let playersWithNoBonus: Player[] = [];
-
-    playersWithBonus = presentPlayers.filter((player) => player.bonus > 0);
-    playersWithNoBonus = presentPlayers.filter((player) => player.bonus === 0);	
+    let playersWithBonus: Player[] = presentPlayers.filter((player) => player.bonus > 0);
+    let playersWithNoBonus: Player[] = presentPlayers.filter((player) => player.bonus === 0);
+	
     this.shuffleArray(playersWithBonus);
     this.shuffleArray(playersWithNoBonus);
 
-    const modulo = playerCount % 4;
+    let modulo = playerCount % 4;
 
     // Extraire les derniers 3 joueurs de playersWithNoBonus en fonction du modulo
     const lastPlayers = playersWithNoBonus.slice(-3 * modulo);
@@ -131,101 +137,106 @@ export class TeamDrawService {
 
     // Structure pour suivre les associations des joueurs
     let lastMatchAssociations: Set<string> = new Set();
+//-------------------------------------
+	const calculerNombreDoublettes = (
+		N : number,
+		T :number
+	): number => {
+	  // Calcul du nombre maximal de triplettes
+	  const maxTriplettes = Math.floor(N / 6);
 
-    switch (modulo) {
-      case 0: // Uniquement des doublettes
-        while (remainingPlayers.length >= 4) {
-          const team1 = this.createTeam(
-            remainingPlayers,
-            Diversification,
-            lastMatches
-          );
-          const team2 = this.createTeam(
-            remainingPlayers,
-            Diversification,
-            lastMatches
-          );
-          matches.push(this.createMatch(matchNumber++, team1, team2));
-        }
-        break;
+	  // Calcul du nombre de joueurs restants après avoir créé les triplettes
+	  const joueursRestants = N - 6 * maxTriplettes;
+	  let NombreDoublettes = T-maxTriplettes;
+	  if (NombreDoublettes) {
+		  switch(joueursRestants) {	  		  
+			  case 1:
+			  case 2:
+			  case 3:	  	  
+				NombreDoublettes ++;
+				break;
+			  case 0:
+			  case 4:			  
+				NombreDoublettes +=2;
+				break;
+			 case 5:
+			   NombreDoublettes =0;
+		  }
+	  }
+	  return NombreDoublettes;
+	};
+		
+	  const createAndAddMatch = (
+		team1Size: number,
+		team2Size: number
+	  ): number => {
+		// Function to create teams and add a match
+		const team1 = remainingPlayers.splice(0, team1Size);
+		const team2 = remainingPlayers.splice(0, team2Size);
 
-      case 1: // Dernière ligne en 2v3
-        while (remainingPlayers.length > 5) {
-          const team1 = this.createTeam(
-            remainingPlayers,
-            Diversification,
-            lastMatches
-          );
-          const team2 = this.createTeam(
-            remainingPlayers,
-            Diversification,
-            lastMatches
-          );
-          matches.push(this.createMatch(matchNumber++, team1, team2));
-        }
-        if (remainingPlayers.length === 5) {
-          const team1 = remainingPlayers.splice(0, 2);
-          const team2 = remainingPlayers.splice(0, 3);
-          triplettePlayerIds.push(...team2.map((p) => p.id));
-          matches.push(this.createMatch(matchNumber++, team1, team2));
-        }
-        break;
+		// Ajouter les joueurs des triplettes à la liste des triplettePlayerIds
+		if (team1Size === 3) triplettePlayerIds.push(...team1.map(p => p.id));
+		if (team2Size === 3) triplettePlayerIds.push(...team2.map(p => p.id));
 
-      case 2: // Dernière ligne en 3v3
-        while (remainingPlayers.length > 6) {
-          const team1 = this.createTeam(
-            remainingPlayers,
-            Diversification,
-            lastMatches
-          );
-          const team2 = this.createTeam(
-            remainingPlayers,
-            Diversification,
-            lastMatches
-          );
-          matches.push(this.createMatch(matchNumber++, team1, team2));
-        }
-        if (remainingPlayers.length === 6) {
-          const team1 = remainingPlayers.splice(0, 3);
-          triplettePlayerIds.push(...team1.map((p) => p.id));
-          const team2 = remainingPlayers.splice(0, 3);
-          triplettePlayerIds.push(...team2.map((p) => p.id));
-          matches.push(this.createMatch(matchNumber++, team1, team2));
-        }
-        break;
+		// Ajouter le match à la liste des matches
+		matches.push(this.createMatch(matchNumber++, team1, team2));
 
-      case 3: // Avant-dernière en 3v3, dernière en 2v3
-        while (remainingPlayers.length > 11) {
-          const team1 = this.createTeam(
-            remainingPlayers,
-            Diversification,
-            lastMatches
-          );
-          const team2 = this.createTeam(
-            remainingPlayers,
-            Diversification,
-            lastMatches
-          );
-          matches.push(this.createMatch(matchNumber++, team1, team2));
-        }
-        if (remainingPlayers.length === 11) {
-          const team1 = remainingPlayers.splice(0, 3);
-          triplettePlayerIds.push(...team1.map((p) => p.id));
+		return matchNumber;
+	  };
+//-----------------------------------
+	const reste = [-1, 1, 2, 7];
+	let EstimationTerrains = Math.floor(remainingPlayers.length / 4);
+	let MaxTriplettes = nbrTerrains * 6;
+	let compensation = 0;
+	// Activer la compensation s'il n'y a pas assez de terrains
+	if (EstimationTerrains > nbrTerrains) {
+	  compensation = EstimationTerrains - nbrTerrains;
+	  console.log("Pas assez de terrains :", nbrTerrains, EstimationTerrains);
+	}
+	if (compensation > 0 ) {
+		let nombreDoublettes = calculerNombreDoublettes(remainingPlayers.length, nbrTerrains);
+		console.log("Nombre optimal de doublettes :", nombreDoublettes);
+		// Ajuster la répartition des joueurs en fonction de la compensation
+		while (nombreDoublettes) {
+		  const team1 = remainingPlayers.splice(0, 2);
+		  const team2 = remainingPlayers.splice(0, 2);													   
+		  matches.push(this.createMatch(matchNumber++, team1, team2));
+		  nombreDoublettes--;
+		}
+		let nombreTriplettes = Math.floor(remainingPlayers.length/6);
+		// Ajuster la répartition des joueurs en fonction de la compensation
+		while (nombreTriplettes > 0) {
+		  const team1 = remainingPlayers.splice(0, 3);
+		  const team2 = remainingPlayers.splice(0, 3);
+		  matches.push(this.createMatch(matchNumber++, team1, team2));
+		  nombreTriplettes --;
+		}
+		modulo = remainingPlayers.length %4;
+	}
+	else {
+		while (remainingPlayers.length > (4 + reste[modulo])) {
+		  const team1 = remainingPlayers.splice(0, 2);
+		  const team2 = remainingPlayers.splice(0, 2);
+		  matches.push(this.createMatch(matchNumber++, team1, team2));
+		}	
+	}
+	switch (modulo) {
+	case 1:
+	  // Dernière ligne en 2v3
+	  createAndAddMatch(2, 3);
+	  break;
 
-          const team2 = remainingPlayers.splice(0, 3);
-          triplettePlayerIds.push(...team2.map((p) => p.id));
+	case 2:
+	  // Dernière ligne en 3v3
+	  createAndAddMatch(3, 3);
+	  break;
 
-          matches.push(this.createMatch(matchNumber++, team1, team2));
-
-          const lastTeam1 = remainingPlayers.splice(0, 2);
-          const lastTeam2 = remainingPlayers.splice(0, 3);
-
-          triplettePlayerIds.push(...lastTeam2.map((p) => p.id));
-
-          matches.push(this.createMatch(matchNumber++, lastTeam1, lastTeam2));
-        }
-        break;
-    }
+	case 3:
+	  // Avant-dernière en 3v3, dernière en 2v3
+	  createAndAddMatch(3, 3); // Avant-dernière ligne
+	  createAndAddMatch(2, 3); // Dernière ligne
+	  break;
+	}
 
     const savedNbrTerrains = parseInt(localStorage.getItem('NbrTerrains') || '1');
     const savedTypeMarquage = JSON.parse(localStorage.getItem('typeMarquage') || 'false');
@@ -233,233 +244,137 @@ export class TeamDrawService {
     //const teams = matches.map(match => [match.team1.map(player => player.id), match.team2.map(player => player.id)]);
     const distributedMatches = this.distributeMatches(matches);//teams
 
-    // Check if logging is enabled before writing to CSV
-    const isLoggingEnabled = JSON.parse(localStorage.getItem("loggingEnabled") || "false");
-    if (isLoggingEnabled) {
-      const newCSVData = this.convertToCSVWithTab(distributedMatches, numPartie); // Use the updated method
+	// 
+	const logType = localStorage.getItem("logType") || "None"; // Récupérer le type de log
 
-      // Retrieve existing CSV data
-      const existingCSVData = localStorage.getItem("tempCSVData") || "";
-      
-      // Combine existing data with new data
-      const combinedCSVData = existingCSVData ? existingCSVData + '\n' + newCSVData : newCSVData;
+	if (logType === "CSV") {
+	  // Générer les données CSV
+	  const newCSVData = this.convertToCSVWithTab(distributedMatches, numPartie);
 
-      // Store the combined CSV data in localStorage
-      localStorage.setItem("tempCSVData", combinedCSVData);
-    }
+	  // Récupérer les données CSV existantes
+	  const existingCSVData = localStorage.getItem("tempCSVData") || "";
+
+	  // Combiner les données existantes avec les nouvelles données
+	  const combinedCSVData = existingCSVData ? existingCSVData + '\n' + newCSVData : newCSVData;
+
+	  // Stocker les données CSV combinées dans localStorage
+	  localStorage.setItem("tempCSVData", combinedCSVData);
+	}
 
     return { matches: distributedMatches, triplettePlayerIds };
   }
 
-//  public static generateMatchesNew(
-//    playerCount: number,
-//    presentPlayers: Player[],
-//    lastMatches: any[]
-//  ): DrawResult {
-//    const Diversification = JSON.parse(
-//      localStorage.getItem("diversification") || "false"
-//    );
-//
-//    if (playerCount < 4 || playerCount > 99) {
-//      return {
-//        matches: [
-//          {
-//            matchNumber: 1,
-//            matchText: "Le nombre de joueurs doit être entre 4 et 99",
-//            team1: [],
-//            team2: [] ,
-//          },
-//        ],
-//        triplettePlayerIds: [],
-//      };
-//    }
-//    console.log("Présents :", presentPlayers);
-//
-//    // Séparer les joueurs en groupes en fonction de leur bonus
-//    let playersWithBonus: Player[] = [];
-//    let playersWithNoBonus: Player[] = [];
-//
-//    playersWithBonus = presentPlayers.filter((player) => player.bonus > 0);
-//    playersWithNoBonus = presentPlayers.filter((player) => player.bonus === 0);	
-//    this.shuffleArray(playersWithBonus);
-//    this.shuffleArray(playersWithNoBonus);
-//
-//    const modulo = playerCount % 4;
-//
-//    // Extraire les derniers 3 joueurs de playersWithNoBonus en fonction du modulo
-//    const lastPlayers = playersWithNoBonus.slice(-3 * modulo);
-//
-//    // Ajouter les premiers joueurs restants de playersWithNoBonus avec playersWithBonus dans playersDoublettes
-//    const playersDoublettes = [...playersWithBonus, ...playersWithNoBonus.slice(0, -3 * modulo)];
-//
-//    this.shuffleArray(playersDoublettes);
-//
-//    // Combinaison finale des joueurs en un seul tableau
-//    const players = [...playersDoublettes, ...lastPlayers];
-//
-//    const matches: Match[] = [];
-//    const triplettePlayerIds: number[] = [];
-//
-//    let matchNumber = 1;
-//    let remainingPlayers = [...players];
-//
-//    console.log("modulo :", modulo);
-//    console.log("remainingPlayers :", remainingPlayers);
-//
-//    // Structure pour suivre les associations des joueurs
-//    let lastMatchAssociations: Set<string> = new Set();
-//
-//    switch (modulo) {
-//      case 0: // Uniquement des doublettes
-//        while (remainingPlayers.length >= 4) {
-//          const team1 = this.createTeam(
-//            remainingPlayers,
-//            Diversification,
-//            lastMatches
-//          );
-//          const team2 = this.createTeam(
-//            remainingPlayers,
-//            Diversification,
-//            lastMatches
-//          );
-//          matches.push(this.createMatch(matchNumber++, team1, team2));
-//        }
-//        break;
-//
-//      case 1: // Dernière ligne en 2v3
-//        while (remainingPlayers.length > 5) {
-//          const team1 = this.createTeam(
-//            remainingPlayers,
-//            Diversification,
-//            lastMatches
-//          );
-//          const team2 = this.createTeam(
-//            remainingPlayers,
-//            Diversification,
-//            lastMatches
-//          );
-//          matches.push(this.createMatch(matchNumber++, team1, team2));
-//        }
-//        if (remainingPlayers.length === 5) {
-//          const team1 = remainingPlayers.splice(0, 2);
-//          const team2 = remainingPlayers.splice(0, 3);
-//          triplettePlayerIds.push(...team2.map((p) => p.id));
-//          matches.push(this.createMatch(matchNumber++, team1, team2));
-//        }
-//        break;
-//
-//      case 2: // Dernière ligne en 3v3
-//        while (remainingPlayers.length > 6) {
-//          const team1 = this.createTeam(
-//            remainingPlayers,
-//            Diversification,
-//            lastMatches
-//          );
-//          const team2 = this.createTeam(
-//            remainingPlayers,
-//            Diversification,
-//            lastMatches
-//          );
-//          matches.push(this.createMatch(matchNumber++, team1, team2));
-//        }
-//        if (remainingPlayers.length === 6) {
-//          const team1 = remainingPlayers.splice(0, 3);
-//          triplettePlayerIds.push(...team1.map((p) => p.id));
-//          const team2 = remainingPlayers.splice(0, 3);
-//          triplettePlayerIds.push(...team2.map((p) => p.id));
-//          matches.push(this.createMatch(matchNumber++, team1, team2));
-//        }
-//        break;
-//
-//      case 3: // Avant-dernière en 3v3, dernière en 2v3
-//        while (remainingPlayers.length > 11) {
-//          const team1 = this.createTeam(
-//            remainingPlayers,
-//            Diversification,
-//            lastMatches
-//          );
-//          const team2 = this.createTeam(
-//            remainingPlayers,
-//            Diversification,
-//            lastMatches
-//          );
-//          matches.push(this.createMatch(matchNumber++, team1, team2));
-//        }
-//        if (remainingPlayers.length === 11) {
-//          const team1 = remainingPlayers.splice(0, 3);
-//          triplettePlayerIds.push(...team1.map((p) => p.id));
-//
-//          const team2 = remainingPlayers.splice(0, 3);
-//          triplettePlayerIds.push(...team2.map((p) => p.id));
-//
-//          matches.push(this.createMatch(matchNumber++, team1, team2));
-//
-//          const lastTeam1 = remainingPlayers.splice(0, 2);
-//          const lastTeam2 = remainingPlayers.splice(0, 3);
-//
-//          triplettePlayerIds.push(...lastTeam2.map((p) => p.id));
-//
-//          matches.push(this.createMatch(matchNumber++, lastTeam1, lastTeam2));
-//        }
-//        break;
-//    }
-//
-//    // Check if logging is enabled before writing to CSV
-//    const isLoggingEnabled = JSON.parse(localStorage.getItem("loggingEnabled") || "false");
-//    if (isLoggingEnabled) {
-//      const newCSVData = this.convertToCSVWithTab(matches); // Use the updated method
-//
-//      // Retrieve existing CSV data
-//      const existingCSVData = localStorage.getItem("tempCSVData") || "";
-//      
-//      // Combine existing data with new data
-//      const combinedCSVData = existingCSVData ? existingCSVData + '\n' + newCSVData : newCSVData;
-//
-//      // Store the combined CSV data in localStorage
-//      localStorage.setItem("tempCSVData", combinedCSVData);
-//    }
-//
-//    const savedNbrTerrains = parseInt(localStorage.getItem('NbrTerrains') || '1');
-//    const savedTypeMarquage = JSON.parse(localStorage.getItem('typeMarquage') || 'false');
-//
-//    const teams = matches.map(match => [match.team1.map(player => player.id), match.team2.map(player => player.id)]);
-//    const distributedMatches = this.distributeMatches(teams);
-//
-//    return { matches: distributedMatches, triplettePlayerIds };
-//  }
+  private static areTerrainsAdjacent = (terrain1: string, terrain2: string): boolean => {
+    return (
+      terrain1 === String.fromCharCode(terrain2.charCodeAt(0) + 1) ||
+      terrain1 === String.fromCharCode(terrain2.charCodeAt(0) - 1) ||
+      terrain1 === (parseInt(terrain2) + 1).toString() ||
+      terrain1 === (parseInt(terrain2) - 1).toString()
+    );
+  };
 
-    private static distributeMatches(matches: Array<{
-      matchNumber: number;
-      matchText: string;
-      team1: any[];
-      team2: any[];
-    }>): { matchNumber: number; teams: string; team1: any[]; team2: any[]; terrain: string }[] {
-      const distributedMatches: { matchNumber: number; teams: string;  team1: any[]; team2: any[]; terrain: string }[] = [];
-      const terrains: string[] = [];
+	private static distributeMatches(
+	  matches: Array<{
+		matchNumber: number;
+		matchText: string;
+		team1: any[];
+		team2: any[];
+	  }>
+	): { matchNumber: number; teams: string; team1: any[]; team2: any[]; terrain: string }[] {
+	  const distributedMatches: { matchNumber: number; teams: string; team1: any[]; team2: any[]; terrain: string }[] = [];
+	  const nbrTerrains = parseInt(localStorage.getItem('NbrTerrains') || '0');
 
-      // Create terrains based on marking type
-      for (let i = 0; i < parseInt(localStorage.getItem('NbrTerrains') || '1'); i++) {
-        terrains.push(JSON.parse(localStorage.getItem('typeMarquage') || 'false') 
-          ? String.fromCharCode(65 + i) 
-          : (i + 1).toString());
-      }
+	  if (nbrTerrains === 0) {
+		return matches.map(match => ({
+		  matchNumber: match.matchNumber,
+		  teams: match.matchText,
+		  team1: match.team1,
+		  team2: match.team2,
+		  terrain: '',
+		}));
+	  }
 
-      let terrainIndex = 0;
-      for (let i = 0; i < matches.length; i++) {
-        distributedMatches.push({
-          matchNumber: matches[i].matchNumber,
-          teams: matches[i].matchText,
-          team1: matches[i].team1,
-          team2: matches[i].team2,          
-          terrain: terrains[terrainIndex]
-        });
-        terrainIndex += 2; // Skip one terrain
-        if (terrainIndex >= terrains.length) terrainIndex = 1; // Start over from terrain 1
-      }
-      return distributedMatches;
-    }
+	  const storedUsedGrounds = localStorage.getItem('usedGrounds');
+	  let usedGrounds: number[] = storedUsedGrounds ? storedUsedGrounds.split(',').map(Number) : Array(nbrTerrains).fill(0);
 
+	  const terrains: string[] = Array.from({ length: nbrTerrains }, (_, i) =>
+		JSON.parse(localStorage.getItem('typeMarquage') || 'false')
+		  ? String.fromCharCode(65 + i)
+		  : (i + 1).toString()
+	  );
 
+	  if (matches.length > nbrTerrains) {
+		throw new Error('Not enough terrains for the number of matches.');
+	  }
+
+	  // Initial terrain assignment favoring least used
+	  const sortedTerrains = [...terrains].sort((a, b) => usedGrounds[terrains.indexOf(a)] - usedGrounds[terrains.indexOf(b)]);
+	  const assignedTerrains = new Set<string>();
+
+	  matches.forEach((match) => {
+		for (const terrain of sortedTerrains) {
+		  if (!assignedTerrains.has(terrain)) {
+			distributedMatches.push({
+			  matchNumber: match.matchNumber,
+			  teams: match.matchText,
+			  team1: match.team1,
+			  team2: match.team2,
+			  terrain,
+			});
+			assignedTerrains.add(terrain);
+			usedGrounds[terrains.indexOf(terrain)]++;
+			break;
+		  }
+		}
+	  });
+
+	  // Correction des terrains consécutifs
+	  for (let i = 1; i < distributedMatches.length; i++) {
+		const currentTerrain = distributedMatches[i].terrain;
+		const previousTerrain = distributedMatches[i - 1].terrain;
+
+		if (this.areTerrainsConsecutive(currentTerrain, previousTerrain)) {
+		  // Trouver un autre terrain disponible
+		  for (let j = 0; j < distributedMatches.length; j++) {
+			if (!this.areTerrainsConsecutive(distributedMatches[j].terrain, previousTerrain) && j !== i) {
+			  // Échanger les terrains
+			  const temp = distributedMatches[i].terrain;
+			  distributedMatches[i].terrain = distributedMatches[j].terrain;
+			  distributedMatches[j].terrain = temp;
+			  break;
+			}
+		  }
+		}
+	  }
+
+	  localStorage.setItem('usedGrounds', usedGrounds.join(','));
+
+	  return distributedMatches;
+	}
+
+	// Fonction pour vérifier si deux terrains sont consécutifs
+	private static areTerrainsConsecutive(terrain1: string, terrain2: string): boolean {
+	  // Vérifier si les terrains sont numériques
+	  const isTerrain1Numeric = !isNaN(Number(terrain1));
+	  const isTerrain2Numeric = !isNaN(Number(terrain2));
+
+	  if (isTerrain1Numeric && isTerrain2Numeric) {
+		// Si les deux terrains sont numériques, vérifier s'ils sont consécutifs
+		return Math.abs(Number(terrain1) - Number(terrain2)) === 1;
+	  }
+
+	  // Si les deux terrains sont des lettres (A-Z), vérifier s'ils sont consécutifs
+	  if (!isTerrain1Numeric && !isTerrain2Numeric) {
+		const charCode1 = terrain1.charCodeAt(0);
+		const charCode2 = terrain2.charCodeAt(0);
+
+		// Vérifier si les deux caractères sont des lettres (A-Z) et s'ils sont consécutifs
+		return Math.abs(charCode1 - charCode2) === 1;
+	  }
+
+	  // Si un terrain est numérique et l'autre est une lettre, ils ne sont pas consécutifs
+	  return false;
+	}
 
   private static createTeam(
     remainingPlayers: Player[],
@@ -543,21 +458,10 @@ export class TeamDrawService {
       [array[i], array[j]] = [array[j], array[i]];
     }
   }
+ 
 }
 
 let lastMatches = { team1: [], team2: [] };
-
-//const handleDraw = () => {
-//  console.log('presentPlayers before draw:', presentPlayers);
-//  const drawResult = TeamDrawService.generateMatchesNew(presentPlayers.length, presentPlayers, lastMatches);
-//  onMatchesUpdate(drawResult);
-//  
-//  // Extract team1 and team2 from drawResult and store them in the global lastMatches
-//  lastMatches.team1 = drawResult.matches.map(match => match.team1);
-//  lastMatches.team2 = drawResult.matches.map(match => match.team2);
-//
-//  navigate('/teams');
-//};
 
 function updatePlayerBonus(
   players: Map<number, Player>,
@@ -579,6 +483,8 @@ function updatePlayerBonus(
     }
   });
 }
+
+
 
 export { updatePlayerBonus };
 //export {createMatch      }

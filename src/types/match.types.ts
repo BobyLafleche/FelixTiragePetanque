@@ -1,23 +1,25 @@
 // src/types/match.types.ts
+
+// Interface pour un joueur
+export interface Player {
+    id: number;
+    present: boolean;
+    bonus: number;
+    drawCount: number;
+}
+
+// Interface pour un match
 export interface Match {
     matchNumber: number;
     matchText: string;
     team1: Player[];
     team2: Player[];
+    terrain: string;
+    teams: string[];
 }
 
-export interface MatchPlayer {
-    team: Player[];
-}
-
-export interface Player {
-    id: number;
-    present: boolean;
-    bonus: number;
-    drawCount : number;
-}
-
+// Interface pour le résultat du tirage
 export interface DrawResult {
-  matches: { teams: string; terrain: string }[];
-  triplettePlayerIds: number[];
+    matches: Match[];  // Simplifié car Match contient déjà terrain
+    triplettePlayerIds: number[];
 }
