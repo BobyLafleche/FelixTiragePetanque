@@ -138,33 +138,44 @@ export class TeamDrawService {
     // Structure pour suivre les associations des joueurs
     let lastMatchAssociations: Set<string> = new Set();
 //-------------------------------------
-	const calculerNombreDoublettes = (
-		N : number,
-		T :number
-	): number => {
-	  // Calcul du nombre maximal de triplettes
-	  const maxTriplettes = Math.floor(N / 6);
 
-	  // Calcul du nombre de joueurs restants après avoir créé les triplettes
-	  const joueursRestants = N - 6 * maxTriplettes;
-	  let NombreDoublettes = T-maxTriplettes;
-	  if (NombreDoublettes) {
-		  switch(joueursRestants) {	  		  
-			  case 1:
-			  case 2:
-			  case 3:	  	  
-				NombreDoublettes ++;
-				break;
-			  case 0:
-			  case 4:			  
-				NombreDoublettes +=2;
-				break;
-			 case 5:
-			   NombreDoublettes =0;
+
+		const optimiserMatchs = (N: number, T: number): MatchDistribution => {
+		  // Initialisation
+		  let meilleureSolution: MatchDistribution = {
+			doublettes: 0,
+			triplettes: 0,
+			mixtes: 0,
+			reste: N
+		  };
+		  
+		  // On teste toutes les combinaisons possibles de matchs
+		  for (let d = 0; d <= Math.floor(N/4); d++) {  // doublettes (4 joueurs)
+			for (let t = 0; t <= Math.floor(N/6); t++) { // triplettes (6 joueurs)
+			  for (let m = 0; m <= Math.floor(N/5); m++) { // mixtes (5 joueurs)
+				// Vérifier si on ne dépasse pas le nombre de terrains
+				if (d + t + m <= T) {
+				  // Calculer le nombre de joueurs utilisés
+				  const joueursUtilises = (d * 4) + (t * 6) + (m * 5);
+				  const reste = N - joueursUtilises;
+				  
+				  // Si cette solution utilise plus de joueurs que la meilleure solution actuelle
+				  // et qu'il ne reste pas plus de joueurs que la solution actuelle
+				  if (joueursUtilises <= N && reste <= meilleureSolution.reste) {
+					meilleureSolution = {
+					  doublettes: d,
+					  triplettes: t,
+					  mixtes: m,
+					  reste: reste
+					};
+				  }
+				}
+			  }
+			}
 		  }
-	  }
-	  return NombreDoublettes;
-	};
+		  
+		  return meilleureSolution;
+		};
 		
 	  const createAndAddMatch = (
 		team1Size: number,
@@ -189,54 +200,54 @@ export class TeamDrawService {
 	let MaxTriplettes = nbrTerrains * 6;
 	let compensation = 0;
 	// Activer la compensation s'il n'y a pas assez de terrains
-	if (EstimationTerrains > nbrTerrains) {
-	  compensation = EstimationTerrains - nbrTerrains;
-	  console.log("Pas assez de terrains :", nbrTerrains, EstimationTerrains);
-	}
-	if (compensation > 0 ) {
-		let nombreDoublettes = calculerNombreDoublettes(remainingPlayers.length, nbrTerrains);
-		console.log("Nombre optimal de doublettes :", nombreDoublettes);
-		// Ajuster la répartition des joueurs en fonction de la compensation
-		while (nombreDoublettes) {
-		  const team1 = remainingPlayers.splice(0, 2);
-		  const team2 = remainingPlayers.splice(0, 2);													   
-		  matches.push(this.createMatch(matchNumber++, team1, team2));
-		  nombreDoublettes--;
+//	if (EstimationTerrains > nbrTerrains) {
+//	  compensation = EstimationTerrains - nbrTerrains;
+//	}
+//	if (compensation > 0 ) {
+//		console.log("Pas assez de terrains :", nbrTerrains, EstimationTerrains);
+		const distribution = optimiserMatchs(remainingPlayers.length, nbrTerrains);
+		console.log("distribution :", distribution);
+		let doublettes = distribution.doublettes;
+		while(doublettes){
+		createAndAddMatch(2, 2);
+		doublettes--;
 		}
-		let nombreTriplettes = Math.floor(remainingPlayers.length/6);
-		// Ajuster la répartition des joueurs en fonction de la compensation
-		while (nombreTriplettes > 0) {
-		  const team1 = remainingPlayers.splice(0, 3);
-		  const team2 = remainingPlayers.splice(0, 3);
-		  matches.push(this.createMatch(matchNumber++, team1, team2));
-		  nombreTriplettes --;
+		let triplettes = distribution.triplettes;
+		while(triplettes){
+		createAndAddMatch(3, 3);
+		triplettes--;
 		}
-		modulo = remainingPlayers.length %4;
-	}
-	else {
-		while (remainingPlayers.length > (4 + reste[modulo])) {
-		  const team1 = remainingPlayers.splice(0, 2);
-		  const team2 = remainingPlayers.splice(0, 2);
-		  matches.push(this.createMatch(matchNumber++, team1, team2));
-		}	
-	}
-	switch (modulo) {
-	case 1:
-	  // Dernière ligne en 2v3
-	  createAndAddMatch(2, 3);
-	  break;
+		let mixtes = distribution.mixtes;
+		while(mixtes){
+		createAndAddMatch(2, 3);
+		mixtes--;
+		}		
 
-	case 2:
-	  // Dernière ligne en 3v3
-	  createAndAddMatch(3, 3);
-	  break;
+	// }
+	// else {
+		// while (remainingPlayers.length > (4 + reste[modulo])) {
+		  // const team1 = remainingPlayers.splice(0, 2);
+		  // const team2 = remainingPlayers.splice(0, 2);
+		  // matches.push(this.createMatch(matchNumber++, team1, team2));
+		// }	
+		// switch (modulo) {
+		// case 1:
+		  // Dernière ligne en 2v3
+		  // createAndAddMatch(2, 3);
+		  // break;
 
-	case 3:
-	  // Avant-dernière en 3v3, dernière en 2v3
-	  createAndAddMatch(3, 3); // Avant-dernière ligne
-	  createAndAddMatch(2, 3); // Dernière ligne
-	  break;
-	}
+		// case 2:
+		  // Dernière ligne en 3v3
+		  // createAndAddMatch(3, 3);
+		  // break;
+
+		// case 3:
+		  // Avant-dernière en 3v3, dernière en 2v3
+		  // createAndAddMatch(3, 3); // Avant-dernière ligne
+		  // createAndAddMatch(2, 3); // Dernière ligne
+		  // break;
+		// }
+	// }
 
     const savedNbrTerrains = parseInt(localStorage.getItem('NbrTerrains') || '1');
     const savedTypeMarquage = JSON.parse(localStorage.getItem('typeMarquage') || 'false');

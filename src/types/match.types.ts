@@ -23,3 +23,10 @@ export interface DrawResult {
     matches: Match[];  // Simplifié car Match contient déjà terrain
     triplettePlayerIds: number[];
 }
+
+export interface MatchDistribution {
+  doublettes: number;  // matchs 2v2
+  triplettes: number;  // matchs 3v3
+  mixtes: number;      // matchs 2v3
+  reste: number;       // joueurs non assignés
+}
