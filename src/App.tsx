@@ -14,12 +14,16 @@ function App() {
   const navigate = useNavigate();
   const [playerCount, setPlayerCount] = useState('');
   const [matches, setMatches] = useState<Match[]>([]);
+  const [allMatches, setAllMatches] = useState<any[]>([]);
   const [presentPlayers, setPresentPlayers] = useState<Player[]>([]);
   const [triplettePlayerIds, setTriplettePlayerIds] = useState<number[]>([]);
   const [players, setPlayers] = useState<Map<number, Player>>(new Map());
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [lastMatches, setLastMatches] = useState([]);
-  const [logType, setLogType] = useState("None"); // État pour le type de log
+  const [logType, setLogType] = useState(() => {
+    const savedLogType = localStorage.getItem("logType");
+    return savedLogType || "None";
+  });
   const [NumPartie, setNumPartie] = useState(0);
   // isLoggingEnabled est true si logType est différent de "None"
   const [isLoggingEnabled, setIsLoggingEnabled] = useState(() => {
@@ -64,6 +68,7 @@ function App() {
 
   const handleMatchesUpdate = (drawTeams: DrawResult) => {
     setMatches(drawTeams.matches);
+    setAllMatches(prevMatches => [...prevMatches, drawTeams.matches]);
     setTriplettePlayerIds(drawTeams.triplettePlayerIds);
     const presentPlayersMap = new Map<number, Player>(presentPlayers.map(player => [player.id, player]));
     updatePlayerBonus(presentPlayersMap, drawTeams.triplettePlayerIds);
@@ -156,7 +161,7 @@ function App() {
       }
 //
       // Mettre à jour les champs du formulaire modal
-	  const savedLogType = localStorage.getItem('logType');
+	  const savedLogType = localStorage.getItem('logType') ?? '';
       const LogTypeInput = document.getElementById('logType') as HTMLInputElement;
 	  if (LogTypeInput) {
 		  LogTypeInput.value = savedLogType;
@@ -170,6 +175,92 @@ function App() {
 
   const handleLogTypeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setLogType(event.target.value); // Met à jour logType avec la nouvelle valeur
+  };
+
+  const generatePDF = (allMatches, showTerrains = true) => {
+    const doc = new jsPDF();
+    
+    // Configuration
+    const pageWidth = doc.internal.pageSize.width;
+    const margin = 20;
+    const contentWidth = pageWidth - (2 * margin);
+    
+    // Style configurations
+    const styles = {
+      title: { fontSize: 16, fontStyle: 'bold' },
+      header: { fontSize: 12, fontStyle: 'bold' },
+      content: { fontSize: 11 },
+      cellPadding: 5,
+      rowHeight: 12,
+      headerHeight: 15
+    };
+  
+    allMatches.forEach((matches, pageIndex) => {
+      if (pageIndex > 0) {
+        doc.addPage();
+      }
+      
+      // Title
+      doc.setFontSize(styles.title.fontSize);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Partie n° ${pageIndex + 1}`, margin, margin + 10);
+      
+      // Header background
+      const headerY = margin + 20;
+      doc.setFillColor(230, 230, 230);
+      doc.rect(margin, headerY, contentWidth, styles.headerHeight, 'F');
+      
+      // Header text
+      doc.setFontSize(styles.header.fontSize);
+      let currentX = margin + styles.cellPadding;
+      
+      // Column widths
+      const numberWidth = contentWidth * 0.1;
+      const terrainWidth = showTerrains ? contentWidth * 0.25 : 0;
+      const teamsWidth = showTerrains ? contentWidth * 0.65 : contentWidth * 0.9;
+      
+      // Header labels
+      doc.text("N°", currentX, headerY + 10);
+      currentX += numberWidth;
+      
+      if (showTerrains) {
+        doc.text("Terrains", currentX + (terrainWidth/3), headerY + 10);
+        currentX += terrainWidth;
+      }
+      
+      doc.text("Équipes", currentX + (teamsWidth/3), headerY + 10);
+      
+      // Content
+      doc.setFontSize(styles.content.fontSize);
+      doc.setFont('helvetica', 'normal');
+      
+      matches.forEach((match, index) => {
+        const rowY = headerY + styles.headerHeight + (index * styles.rowHeight);
+        
+        // Row background
+        doc.setFillColor(245, 245, 245);
+        doc.rect(margin, rowY, contentWidth, styles.rowHeight, 'F');
+        
+        // Row content
+        currentX = margin + styles.cellPadding;
+        
+        // Match number
+        doc.text(`${index + 1}`, currentX, rowY + 8);
+        currentX += numberWidth;
+        
+        // Terrain (if showing)
+        if (showTerrains) {
+          doc.text(match.terrain?.toString() || '-', currentX + (terrainWidth/3), rowY + 8);
+          currentX += terrainWidth;
+        }
+        
+        // Teams
+        doc.text(match.teams, currentX + styles.cellPadding, rowY + 8);
+      });
+    });
+    
+    const timestamp = new Date().toISOString().split('T')[0];
+    doc.save(`parties-petanque-${timestamp}.pdf`);
   };
 
 const handleDownload = () => {
@@ -189,46 +280,9 @@ const handleDownload = () => {
       alert('No CSV data available for download.');
     }
   } else if (logType === "PDF") {
-    // Récupérer les captures d'écran depuis localStorage
-    const screenshots = JSON.parse(localStorage.getItem('screenshots') || '[]');
-
-    if (screenshots.length === 0) {
-      alert('No screenshots available for download.');
-      return;
-    }
-
-    // Créer un nouveau document PDF
-    const doc = new jsPDF();
-
-    // Fonction pour ajouter une capture d'écran au PDF
-    const addScreenshotToPDF = async (screenshot: string, index: number) => {
-      // Convertir le HTML en image avec html2canvas
-      const element = document.createElement('div');
-      element.innerHTML = screenshot;
-      document.body.appendChild(element);
-
-      const canvas = await html2canvas(element);
-      const imgData = canvas.toDataURL('image/png');
-
-      // Ajouter l'image au PDF
-      if (index > 0) {
-        doc.addPage(); // Ajouter une nouvelle page pour chaque capture d'écran après la première
-      }
-      doc.addImage(imgData, 'PNG', 10, 10, 180, 0);
-
-      // Nettoyer l'élément temporaire
-      document.body.removeChild(element);
-    };
-
-    // Ajouter chaque capture d'écran au PDF
-    screenshots.forEach(async (screenshot, index) => {
-      await addScreenshotToPDF(screenshot, index);
-
-      // Télécharger le PDF après avoir ajouté la dernière capture d'écran
-      if (index === screenshots.length - 1) {
-        doc.save('matches.pdf');
-      }
-    });
+    let _T = localStorage.getItem('NbrTerrains') || '1';
+    let _Tn = isNaN(parseInt(_T)) ? 1 : parseInt(_T);
+    generatePDF(allMatches, _Tn > 0);
   } else {
     // Si logType est "None", ne rien faire ou afficher un message
     alert('Choisir un type.');
