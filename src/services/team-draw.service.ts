@@ -1,4 +1,4 @@
-import { Match, Player, DrawResult } from "../types/match.types";
+import { Match, Player, DrawResult, MatchDistribution } from "../types/match.types";
  
 import { jsPDF } from "jspdf";
 
@@ -6,7 +6,7 @@ export class TeamDrawService {
   // Function to convert data to CSV format
   private static convertToCSV(data: { [key: string]: any }[]): string {
     if (!data || data.length === 0) return '';
-    const csvRows = [];
+    const csvRows: string[] = [];
     const headers = Object.keys(data[0]);
     csvRows.push(headers.join(',')); // Add headers
 
@@ -20,7 +20,7 @@ export class TeamDrawService {
   // Function to convert data to CSV format with semicolon as separator
   private static convertToCSVWithSemicolon(data: { [key: string]: any }[]): string {
     if (!data || data.length === 0) return '';
-    const csvRows = [];
+    const csvRows: string[] = [];
     const headers = Object.keys(data[0]);
     csvRows.push(headers.join(';')); // Use semicolon as separator
 
@@ -33,7 +33,7 @@ export class TeamDrawService {
 
   // Function to convert data to CSV format with tab as separator
   private static convertToCSVWithTab(data: any[], numPartie: number): string {
-    const csvRows = [];
+    const csvRows: string[] = [];
 
     // Loop through each match and format the output
     data.forEach(match => {
@@ -86,7 +86,7 @@ export class TeamDrawService {
     );
 	 // Récupérer NbrTerrains depuis localStorage
     const nbrTerrains = Number(localStorage.getItem('NbrTerrains')) || 0;
-    const maxPlayers = nbrTerrains && parseInt(nbrTerrains) > 0 ? 6 * parseInt(nbrTerrains) : playerCount;
+    const maxPlayers = nbrTerrains > 0 ? 6 * nbrTerrains : playerCount;
 
     // Valider le nombre de joueurs
     if (playerCount < 4 || playerCount > maxPlayers) {
@@ -97,7 +97,7 @@ export class TeamDrawService {
             matchText: "Le nombre de joueurs doit être entre 4 et maxPlayers",
             team1: [],
             team2: [],
-            terrain: 0,
+            terrain: "0",
             teams: [],
           },
         ],
@@ -272,7 +272,7 @@ export class TeamDrawService {
 	  localStorage.setItem("tempCSVData", combinedCSVData);
 	}
 
-    return { matches: distributedMatches, triplettePlayerIds };
+    return { matches:  distributedMatches, triplettePlayerIds };
   }
 
   private static areTerrainsAdjacent = (terrain1: string, terrain2: string): boolean => {
@@ -291,17 +291,18 @@ export class TeamDrawService {
 		team1: any[];
 		team2: any[];
 	  }>
-	): { matchNumber: number; teams: string; team1: any[]; team2: any[]; terrain: string }[] {
-	  const distributedMatches: { matchNumber: number; teams: string; team1: any[]; team2: any[]; terrain: string }[] = [];
+	): Match[] {
+	  const distributedMatches: Match[] = [];
 	  const nbrTerrains = parseInt(localStorage.getItem('NbrTerrains') || '0');
 
 	  if (nbrTerrains === 0) {
 		return matches.map(match => ({
 		  matchNumber: match.matchNumber,
-		  teams: match.matchText,
+		  matchText: match.matchText,
+		  teams: [match.matchText], // Wrapped in array to match string[] type
 		  team1: match.team1,
 		  team2: match.team2,
-		  terrain: '',
+		  terrain: "0",
 		}));
 	  }
 
@@ -327,7 +328,8 @@ export class TeamDrawService {
 		  if (!assignedTerrains.has(terrain)) {
 			distributedMatches.push({
 			  matchNumber: match.matchNumber,
-			  teams: match.matchText,
+			  matchText: match.matchText,
+			  teams: [match.matchText], // Wrapped in array to match string[] type
 			  team1: match.team1,
 			  team2: match.team2,
 			  terrain,
@@ -460,6 +462,8 @@ export class TeamDrawService {
           : "Match incomplet",
       team1: team1,
       team2: team2,
+      terrain: String.fromCharCode(65 + (matchNumber - 1) % 26), // Assigns terrains A, B, C, etc.
+      teams: [team1Text, team2Text]
     };
   }
 

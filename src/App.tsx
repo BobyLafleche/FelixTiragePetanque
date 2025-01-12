@@ -182,85 +182,109 @@ function App() {
     
     // Configuration
     const pageWidth = doc.internal.pageSize.width;
+    const pageHeight = doc.internal.pageSize.height;
     const margin = 20;
-    const contentWidth = pageWidth - (2 * margin);
+    const contentWidth = (pageWidth - (3 * margin)) / 2; // Width for each column
     
     // Style configurations
     const styles = {
-      title: { fontSize: 16, fontStyle: 'bold' },
-      header: { fontSize: 12, fontStyle: 'bold' },
-      content: { fontSize: 11 },
-      cellPadding: 5,
-      rowHeight: 12,
-      headerHeight: 15
+      title: { fontSize: 14, fontStyle: 'bold' },
+      header: { fontSize: 10, fontStyle: 'bold' },
+      content: { fontSize: 9 },
+      cellPadding: 3,
+      rowHeight: 10,
+      headerHeight: 12,
+      blockMargin: 20
     };
+
+    // Calculate how many blocks we can fit per page (2 columns × 2 rows)
+    const blocksPerPage = 4;
+    let currentPage = 0;
   
-    allMatches.forEach((matches, pageIndex) => {
-      if (pageIndex > 0) {
+    // Process matches in blocks of 4 (2×2 grid)
+    for (let i = 0; i < allMatches.length; i += blocksPerPage) {
+      if (i > 0 && i % blocksPerPage === 0) {
         doc.addPage();
+        currentPage++;
       }
-      
-      // Title
-      doc.setFontSize(styles.title.fontSize);
-      doc.setFont('helvetica', 'bold');
-      doc.text(`Partie n° ${pageIndex + 1}`, margin, margin + 10);
-      
-      // Header background
-      const headerY = margin + 20;
-      doc.setFillColor(230, 230, 230);
-      doc.rect(margin, headerY, contentWidth, styles.headerHeight, 'F');
-      
-      // Header text
-      doc.setFontSize(styles.header.fontSize);
-      let currentX = margin + styles.cellPadding;
-      
-      // Column widths
-      const numberWidth = contentWidth * 0.1;
-      const terrainWidth = showTerrains ? contentWidth * 0.25 : 0;
-      const teamsWidth = showTerrains ? contentWidth * 0.65 : contentWidth * 0.9;
-      
-      // Header labels
-      doc.text("N°", currentX, headerY + 10);
-      currentX += numberWidth;
-      
-      if (showTerrains) {
-        doc.text("Terrains", currentX + (terrainWidth/3), headerY + 10);
-        currentX += terrainWidth;
-      }
-      
-      doc.text("Équipes", currentX + (teamsWidth/3), headerY + 10);
-      
-      // Content
-      doc.setFontSize(styles.content.fontSize);
-      doc.setFont('helvetica', 'normal');
-      
-      matches.forEach((match, index) => {
-        const rowY = headerY + styles.headerHeight + (index * styles.rowHeight);
+
+      // Process each block in the current page (up to 4 blocks)
+      for (let blockIndex = 0; blockIndex < Math.min(blocksPerPage, allMatches.length - i); blockIndex++) {
+        const colIndex = blockIndex % 2; // 0 for left column, 1 for right column
+        const rowIndex = Math.floor(blockIndex / 2); // 0 for top row, 1 for bottom row
+        const matches = allMatches[i + blockIndex];
+
+        if (!matches) continue;
+
+        const columnX = margin + (colIndex * (contentWidth + margin));
+        const blockY = margin + (rowIndex * (pageHeight / 2));
+
+        // Title
+        doc.setFontSize(styles.title.fontSize);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`Partie n° ${i + blockIndex + 1}`, columnX, blockY + 10);
         
-        // Row background
-        doc.setFillColor(245, 245, 245);
-        doc.rect(margin, rowY, contentWidth, styles.rowHeight, 'F');
+        // Header background
+        const headerY = blockY + 20;
+        doc.setFillColor(230, 230, 230);
+        doc.rect(columnX, headerY, contentWidth, styles.headerHeight, 'F');
         
-        // Row content
-        currentX = margin + styles.cellPadding;
+        // Header text
+        doc.setFontSize(styles.header.fontSize);
+        let currentX = columnX + styles.cellPadding;
         
-        // Match number
-        doc.text(`${index + 1}`, currentX, rowY + 8);
+        // Column widths
+        const numberWidth = contentWidth * 0.1;
+        const terrainWidth = showTerrains ? contentWidth * 0.25 : 0;
+        const teamsWidth = showTerrains ? contentWidth * 0.65 : contentWidth * 0.9;
+        
+        // Header labels
+        doc.text("N°", currentX, headerY + 10);
         currentX += numberWidth;
         
-        // Terrain (if showing)
         if (showTerrains) {
-          doc.text(match.terrain?.toString() || '-', currentX + (terrainWidth/3), rowY + 8);
+          doc.text("Terrains", currentX + (terrainWidth/3), headerY + 10);
           currentX += terrainWidth;
         }
         
-        // Teams
-        doc.text(match.teams, currentX + styles.cellPadding, rowY + 8);
-      });
-    });
-    
-    const timestamp = new Date().toISOString().split('T')[0];
+        doc.text("Équipes", currentX + (teamsWidth/3), headerY + 10);
+        
+        // Content
+        doc.setFontSize(styles.content.fontSize);
+        doc.setFont('helvetica', 'normal');
+        
+        matches.forEach((match, index) => {
+          const rowY = headerY + styles.headerHeight + (index * styles.rowHeight);
+          
+          // Row background
+          doc.setFillColor(245, 245, 245);
+          doc.rect(columnX, rowY, contentWidth, styles.rowHeight, 'F');
+          
+          // Row content
+          currentX = columnX + styles.cellPadding;
+          
+          // Match number
+          doc.text(`${index + 1}`, currentX, rowY + 8);
+          currentX += numberWidth;
+          
+          // Terrain (if showing)
+          if (showTerrains) {
+            doc.text(match.terrain?.toString() || '-', currentX + (terrainWidth/3), rowY + 8);
+            currentX += terrainWidth;
+          }
+          
+          // Teams
+          const teamsText = match.matchText;
+          doc.text(teamsText, currentX, rowY + 8, {
+            maxWidth: teamsWidth - styles.cellPadding
+          });
+        });
+      }
+    }
+    const datetimestamp = new Date().toISOString();
+    const timestamp = datetimestamp.replace(/T/, '_').replace(/\..+/, '').replace(/:/g, '-');
     doc.save(`parties-petanque-${timestamp}.pdf`);
+    
   };
 
 const handleDownload = () => {
