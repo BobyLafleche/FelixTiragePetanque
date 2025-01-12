@@ -53,11 +53,12 @@ function App() {
 
   const handleReset = () => {
     setPlayerCount('');
+    setPlayers(new Map());
     setPresentPlayers([]);
     setMatches([]);
-    setTriplettePlayerIds([]);
-    setPlayers(new Map());
     setLastMatches([]);
+    setAllMatches([]);
+    setTriplettePlayerIds([]);
   };
 
   const handleTogglePresence = (playerId: number) => {
@@ -184,7 +185,6 @@ function App() {
     const pageWidth = doc.internal.pageSize.width;
     const pageHeight = doc.internal.pageSize.height;
     const margin = 20;
-    const contentWidth = (pageWidth - (3 * margin)) / 2; // Width for each column
     
     // Style configurations
     const styles = {
@@ -197,43 +197,34 @@ function App() {
       blockMargin: 20
     };
 
-    // Calculate how many blocks we can fit per page (2 columns × 2 rows)
-    const blocksPerPage = 4;
-    let currentPage = 0;
-  
-    // Process matches in blocks of 4 (2×2 grid)
-    for (let i = 0; i < allMatches.length; i += blocksPerPage) {
-      if (i > 0 && i % blocksPerPage === 0) {
-        doc.addPage();
-        currentPage++;
-      }
+    // Vérifier si une partie a plus de 10 matches
+    const hasLongMatch = allMatches.some(matches => matches.length > 10);
 
-      // Process each block in the current page (up to 4 blocks)
-      for (let blockIndex = 0; blockIndex < Math.min(blocksPerPage, allMatches.length - i); blockIndex++) {
-        const colIndex = blockIndex % 2; // 0 for left column, 1 for right column
-        const rowIndex = Math.floor(blockIndex / 2); // 0 for top row, 1 for bottom row
-        const matches = allMatches[i + blockIndex];
+    if (hasLongMatch) {
+      // Mode une partie par page
+      allMatches.forEach((matches, pageIndex) => {
+        if (pageIndex > 0) {
+          doc.addPage();
+        }
 
-        if (!matches) continue;
-
-        const columnX = margin + (colIndex * (contentWidth + margin));
-        const blockY = margin + (rowIndex * (pageHeight / 2));
+        // Configuration pour page complète
+        const contentWidth = pageWidth - (2 * margin);
 
         // Title
         doc.setFontSize(styles.title.fontSize);
         doc.setFont('helvetica', 'bold');
-        doc.text(`Partie n° ${i + blockIndex + 1}`, columnX, blockY + 10);
+        doc.text(`Partie n° ${pageIndex + 1}`, margin, margin + 10);
         
         // Header background
-        const headerY = blockY + 20;
+        const headerY = margin + 20;
         doc.setFillColor(230, 230, 230);
-        doc.rect(columnX, headerY, contentWidth, styles.headerHeight, 'F');
+        doc.rect(margin, headerY, contentWidth, styles.headerHeight, 'F');
         
         // Header text
         doc.setFontSize(styles.header.fontSize);
-        let currentX = columnX + styles.cellPadding;
+        let currentX = margin + styles.cellPadding;
         
-        // Column widths
+        // Column widths for full width
         const numberWidth = contentWidth * 0.1;
         const terrainWidth = showTerrains ? contentWidth * 0.25 : 0;
         const teamsWidth = showTerrains ? contentWidth * 0.65 : contentWidth * 0.9;
@@ -258,10 +249,10 @@ function App() {
           
           // Row background
           doc.setFillColor(245, 245, 245);
-          doc.rect(columnX, rowY, contentWidth, styles.rowHeight, 'F');
+          doc.rect(margin, rowY, contentWidth, styles.rowHeight, 'F');
           
           // Row content
-          currentX = columnX + styles.cellPadding;
+          currentX = margin + styles.cellPadding;
           
           // Match number
           doc.text(`${index + 1}`, currentX, rowY + 8);
@@ -279,10 +270,94 @@ function App() {
             maxWidth: teamsWidth - styles.cellPadding
           });
         });
+      });
+    } else {
+      // Mode 4 parties par page (2×2)
+      const contentWidth = (pageWidth - (3 * margin)) / 2;
+      const blocksPerPage = 4;
+      
+      for (let i = 0; i < allMatches.length; i += blocksPerPage) {
+        if (i > 0 && i % blocksPerPage === 0) {
+          doc.addPage();
+        }
+
+        // Process each block in the current page (up to 4 blocks)
+        for (let blockIndex = 0; blockIndex < Math.min(blocksPerPage, allMatches.length - i); blockIndex++) {
+          const colIndex = blockIndex % 2;
+          const rowIndex = Math.floor(blockIndex / 2);
+          const matches = allMatches[i + blockIndex];
+
+          if (!matches) continue;
+
+          const columnX = margin + (colIndex * (contentWidth + margin));
+          const blockY = margin + (rowIndex * (pageHeight / 2));
+
+          // Title
+          doc.setFontSize(styles.title.fontSize);
+          doc.setFont('helvetica', 'bold');
+          doc.text(`Partie n° ${i + blockIndex + 1}`, columnX, blockY + 10);
+          
+          // Header background
+          const headerY = blockY + 20;
+          doc.setFillColor(230, 230, 230);
+          doc.rect(columnX, headerY, contentWidth, styles.headerHeight, 'F');
+          
+          // Header text
+          doc.setFontSize(styles.header.fontSize);
+          let currentX = columnX + styles.cellPadding;
+          
+          // Column widths
+          const numberWidth = contentWidth * 0.1;
+          const terrainWidth = showTerrains ? contentWidth * 0.25 : 0;
+          const teamsWidth = showTerrains ? contentWidth * 0.65 : contentWidth * 0.9;
+          
+          // Header labels
+          doc.text("N°", currentX, headerY + 10);
+          currentX += numberWidth;
+          
+          if (showTerrains) {
+            doc.text("Terrains", currentX + (terrainWidth/3), headerY + 10);
+            currentX += terrainWidth;
+          }
+          
+          doc.text("Équipes", currentX + (teamsWidth/3), headerY + 10);
+          
+          // Content
+          doc.setFontSize(styles.content.fontSize);
+          doc.setFont('helvetica', 'normal');
+          
+          matches.forEach((match, index) => {
+            const rowY = headerY + styles.headerHeight + (index * styles.rowHeight);
+            
+            // Row background
+            doc.setFillColor(245, 245, 245);
+            doc.rect(columnX, rowY, contentWidth, styles.rowHeight, 'F');
+            
+            // Row content
+            currentX = columnX + styles.cellPadding;
+            
+            // Match number
+            doc.text(`${index + 1}`, currentX, rowY + 8);
+            currentX += numberWidth;
+            
+            // Terrain (if showing)
+            if (showTerrains) {
+              doc.text(match.terrain?.toString() || '-', currentX + (terrainWidth/3), rowY + 8);
+              currentX += terrainWidth;
+            }
+            
+            // Teams
+            const teamsText = match.matchText;
+            doc.text(teamsText, currentX, rowY + 8, {
+              maxWidth: teamsWidth - styles.cellPadding
+            });
+          });
+        }
       }
     }
+    
     const datetimestamp = new Date().toISOString();
-    const timestamp = datetimestamp.replace(/T/, '_').replace(/\..+/, '').replace(/:/g, '-');
+    const timestamp = datetimestamp.replace(/T/, '_').replace(/\..*/, '').replace(/:/g, '-');
     doc.save(`parties-petanque-${timestamp}.pdf`);
     
   };
@@ -311,24 +386,8 @@ const handleDownload = () => {
     // Si logType est "None", ne rien faire ou afficher un message
     alert('Choisir un type.');
   }
+  setIsModalOpen(false);
 };
-
-  const handleDownload__ = () => {
-    const csvData = localStorage.getItem("tempCSVData"); // Retrieve the temporary CSV data
-    if (csvData) {
-      const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-
-      const a = document.createElement('a');
-      a.href = url;
-      a.setAttribute('download', 'matches.csv'); // Specify the file name
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    } else {
-      alert('No data available for download.');
-    }
-  };
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
@@ -364,7 +423,11 @@ const handleDownload = () => {
       {isModalOpen && (
         <div className="modal" style={{zIndex: 1000}}>
           <div className="modal-content">
-            <h3 className="text-center text-white bg-blue-600 p-2 rounded-md mb-4">Paramètres</h3>
+            <div className="relative">
+  <h3 className="text-center text-white bg-blue-600 p-2 rounded-md mb-4">Paramètres</h3>
+  <span className="absolute bottom-0 right-0 text-xs text-blue-300 pr-2 pb-2">v0.50</span>
+</div>
+
 			<div className="grid grid-cols-3 items-center mb-4 grid-cols-[10%,25%,auto]">
 			  <div className="flex items-center col-span-1">
 				<label htmlFor="duration" className="mr-2">Durée:</label>

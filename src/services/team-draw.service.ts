@@ -138,8 +138,6 @@ export class TeamDrawService {
     // Structure pour suivre les associations des joueurs
     let lastMatchAssociations: Set<string> = new Set();
 //-------------------------------------
-
-
 		const optimiserMatchs = (N: number, T: number): MatchDistribution => {
 		  // Initialisation
 		  let meilleureSolution: MatchDistribution = {
@@ -200,11 +198,9 @@ export class TeamDrawService {
 	let MaxTriplettes = nbrTerrains * 6;
 	let compensation = 0;
 	// Activer la compensation s'il n'y a pas assez de terrains
-//	if (EstimationTerrains > nbrTerrains) {
-//	  compensation = EstimationTerrains - nbrTerrains;
-//	}
-//	if (compensation > 0 ) {
-//		console.log("Pas assez de terrains :", nbrTerrains, EstimationTerrains);
+	// && (EstimationTerrains > nbrTerrains)) {
+	if (nbrTerrains >0 ) {
+		console.log("Pas assez de terrains :", nbrTerrains, EstimationTerrains);
 		const distribution = optimiserMatchs(remainingPlayers.length, nbrTerrains);
 		console.log("distribution :", distribution);
 		let doublettes = distribution.doublettes;
@@ -222,32 +218,28 @@ export class TeamDrawService {
 		createAndAddMatch(2, 3);
 		mixtes--;
 		}		
+	}
+	else {
+		while (remainingPlayers.length > (4 + reste[modulo])) {
+		  const team1 = remainingPlayers.splice(0, 2);
+		  const team2 = remainingPlayers.splice(0, 2);
+		  matches.push(this.createMatch(matchNumber++, team1, team2));
+		}	
+		switch (modulo) {
+		case 1:		  
+		  createAndAddMatch(2, 3);
+		  break;
 
-	// }
-	// else {
-		// while (remainingPlayers.length > (4 + reste[modulo])) {
-		  // const team1 = remainingPlayers.splice(0, 2);
-		  // const team2 = remainingPlayers.splice(0, 2);
-		  // matches.push(this.createMatch(matchNumber++, team1, team2));
-		// }	
-		// switch (modulo) {
-		// case 1:
-		  // Dernière ligne en 2v3
-		  // createAndAddMatch(2, 3);
-		  // break;
+		case 2:
+		  createAndAddMatch(3, 3);
+		  break;
 
-		// case 2:
-		  // Dernière ligne en 3v3
-		  // createAndAddMatch(3, 3);
-		  // break;
-
-		// case 3:
-		  // Avant-dernière en 3v3, dernière en 2v3
-		  // createAndAddMatch(3, 3); // Avant-dernière ligne
-		  // createAndAddMatch(2, 3); // Dernière ligne
-		  // break;
-		// }
-	// }
+		case 3:
+		  createAndAddMatch(3, 3); // Avant-dernière ligne
+		  createAndAddMatch(2, 3); // Dernière ligne
+		  break;
+		}
+	}
 
     const savedNbrTerrains = parseInt(localStorage.getItem('NbrTerrains') || '1');
     const savedTypeMarquage = JSON.parse(localStorage.getItem('typeMarquage') || 'false');
